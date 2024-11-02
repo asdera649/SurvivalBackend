@@ -1,0 +1,12 @@
+[
+  {
+    "ContainingType": "SurvivalBackend.Controllers.MainController",
+    "Method": "GetDeployments",
+    "RelativePath": "api/Main/deployments",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]
