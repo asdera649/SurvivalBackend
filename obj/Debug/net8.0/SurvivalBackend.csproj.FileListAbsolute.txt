@@ -23,3 +23,8 @@ C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\refint\SurvivalBac
 C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\SurvivalBackend.pdb
 C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\SurvivalBackend.genruntimeconfig.cache
 C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\ref\SurvivalBackend.dll
+C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\SurvivalBackend.sourcelink.json
+C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\SurvivalBackend.csproj.AssemblyReference.cache
+C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\Survival.8DCD5FC0.Up2Date
+C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\currentgameclientversion.json

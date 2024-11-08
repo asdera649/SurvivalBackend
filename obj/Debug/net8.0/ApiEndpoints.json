@@ -1,12 +1,60 @@
 [
   {
-    "ContainingType": "SurvivalBackend.Controllers.MainController",
-    "Method": "GetDeployments",
-    "RelativePath": "api/Main/deployments",
+    "ContainingType": "SurvivalBackend.Controllers.ActualGameClientDataController",
+    "Method": "GetCurrentGameClientVersion",
+    "RelativePath": "ActualGameClientData/currentVersion",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SurvivalBackend.Controllers.ServersManagementController",
+    "Method": "ConnectToServer",
+    "RelativePath": "ServersManagement/connect",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "serverRequestId",
+        "Type": "SurvivalBackend.Controllers.ServersManagementController\u002BServerRequestId",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SurvivalBackend.Controllers.ServersManagementController",
+    "Method": "GetServers",
+    "RelativePath": "ServersManagement/servers",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "clientVersion",
+        "Type": "SurvivalBackend.Controllers.ServersManagementController\u002BClientVersion",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SurvivalBackend.Controllers.ServersManagementController",
+    "Method": "UpdateServerState",
+    "RelativePath": "ServersManagement/updateServerState",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "serverState",
+        "Type": "SurvivalBackend.Controllers.ServersManagementController\u002BServerState",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   }
 ]

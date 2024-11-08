@@ -1,3 +1,5 @@
+using SurvivalBackend;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Добавление конфигурации из appsettings.json
