@@ -35,8 +35,8 @@
     "Parameters": [
       {
         "Name": "clientVersion",
-        "Type": "SurvivalBackend.Controllers.ServersManagementController\u002BClientVersion",
-        "IsRequired": true
+        "Type": "System.String",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

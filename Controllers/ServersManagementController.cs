@@ -29,11 +29,6 @@ namespace SurvivalBackend.Controllers
             [Required] public required string RequestId { get; set; }
         }
 
-        public class ClientVersion
-        {
-            [Required] public required string GameClientVersion { get; set; }
-        }
-
         public class ServerState
         {
             [Required] public int MaxPlayersCount { get; set; }
@@ -97,9 +92,9 @@ namespace SurvivalBackend.Controllers
         }
 
         [HttpGet("servers")]
-        public async Task<IActionResult> GetServers([FromBody] ClientVersion clientVersion)
+        public async Task<IActionResult> GetServers([FromQuery] string clientVersion)
         {
-            if (clientVersion.GameClientVersion != ActualGameClientData.GetCurrentGameClientVersion())
+            if (clientVersion != ActualGameClientData.GetCurrentGameClientVersion())
             {
                 return StatusCode(426, "Client version is outdated.");
             }
