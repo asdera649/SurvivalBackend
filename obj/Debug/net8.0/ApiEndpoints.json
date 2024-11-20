@@ -18,9 +18,14 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "serverRequestId",
-        "Type": "SurvivalBackend.Controllers.ServersManagementController\u002BServerRequestId",
-        "IsRequired": true
+        "Name": "requestId",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "clientVersion",
+        "Type": "System.String",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

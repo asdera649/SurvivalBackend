@@ -23,12 +23,6 @@ namespace SurvivalBackend.Controllers
             public int ExternalPort { get; set; }
         }
 
-        public class ServerRequestId
-        {
-            [Required] public required string GameClientVersion { get; set; }
-            [Required] public required string RequestId { get; set; }
-        }
-
         public class ServerState
         {
             [Required] public int MaxPlayersCount { get; set; }
@@ -52,14 +46,14 @@ namespace SurvivalBackend.Controllers
         private readonly HttpClient _httpClient;
 
         [HttpGet("connect")]
-        public async Task<IActionResult> ConnectToServer([FromBody] ServerRequestId serverRequestId)
+        public async Task<IActionResult> ConnectToServer([FromQuery] string requestId, [FromQuery] string clientVersion)
         {
-            if (serverRequestId.GameClientVersion != ActualGameClientData.GetCurrentGameClientVersion())
+            if (clientVersion != ActualGameClientData.GetCurrentGameClientVersion())
             {
                 return StatusCode(426, "Client version is outdated.");
             }
 
-            var response = await _httpClient.GetAsync($"https://api.edgegap.com/v1/status/{serverRequestId}");
+            var response = await _httpClient.GetAsync($"https://api.edgegap.com/v1/status/{requestId}");
 
             if (response.IsSuccessStatusCode)
             {
