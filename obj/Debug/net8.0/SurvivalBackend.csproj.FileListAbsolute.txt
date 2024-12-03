@@ -28,3 +28,7 @@ C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\Newtonsoft.Json.dl
 C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\SurvivalBackend.csproj.AssemblyReference.cache
 C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\Survival.8DCD5FC0.Up2Date
 C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\currentgameclientversion.json
+C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\wipesettings.json
+C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\Quartz.dll
+C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\Quartz.Extensions.DependencyInjection.dll
+C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\Quartz.Extensions.Hosting.dll

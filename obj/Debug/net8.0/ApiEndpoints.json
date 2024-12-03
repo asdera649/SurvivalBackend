@@ -61,5 +61,15 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SurvivalBackend.Controllers.ServersWipeController",
+    "Method": "GetRemainingTimeToWipe",
+    "RelativePath": "ServersWipe/remainingTimeToWipe",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
   }
 ]

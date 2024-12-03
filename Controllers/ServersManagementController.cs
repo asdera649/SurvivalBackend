@@ -11,6 +11,7 @@ namespace SurvivalBackend.Controllers
     {
         public class ServerInfo
         {
+            public required string Ip { get; set; }
             public required string RequestId { get; set; }
             public required string Name { get; set; }
             public int MaxPlayersCount { get; set; }
@@ -29,12 +30,10 @@ namespace SurvivalBackend.Controllers
             [Required] public int CurrentPlayersCount { get; set; }
         }
 
-        public ServersManagementController(IConfiguration configuration)
+        public ServersManagementController(HttpClient httpClient, IConfiguration configuration)
         {
-            _httpClient = new HttpClient();
-
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("authorization", configuration["EdgegapToken"]);
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
 
         private Dictionary<string, string> _serverNamesCache = new();
@@ -44,6 +43,7 @@ namespace SurvivalBackend.Controllers
         private int _currentServerIndex = 1;
 
         private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
         [HttpGet("connect")]
         public async Task<IActionResult> ConnectToServer([FromQuery] string requestId, [FromQuery] string clientVersion)
@@ -52,6 +52,9 @@ namespace SurvivalBackend.Controllers
             {
                 return StatusCode(426, "Client version is outdated.");
             }
+
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("authorization", _configuration["EdgegapToken"]);
 
             var response = await _httpClient.GetAsync($"https://api.edgegap.com/v1/status/{requestId}");
 
@@ -72,7 +75,7 @@ namespace SurvivalBackend.Controllers
                 {
                     PublicIp = publicIp,
                     ExternalPort = document.RootElement.GetProperty("ports")
-                                                       .GetProperty("Game Port")
+                                                       .GetProperty("gameport")
                                                        .GetProperty("external")
                                                        .GetInt32()
                 };
@@ -92,6 +95,9 @@ namespace SurvivalBackend.Controllers
             {
                 return StatusCode(426, "Client version is outdated.");
             }
+
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("authorization", _configuration["EdgegapToken"]);
 
             var response = await _httpClient.GetAsync("https://api.edgegap.com/v1/deployments");
 
@@ -120,6 +126,7 @@ namespace SurvivalBackend.Controllers
 
                     servers.Add(new ServerInfo
                     {
+                        Ip = publicIp,
                         RequestId = requestId,
                         Name = name,
                         MaxPlayersCount = _serverPropertiesCache.TryGetValue(publicIp, out var state) ? state.MaxPlayersCount : 0,

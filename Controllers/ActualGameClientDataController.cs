@@ -7,16 +7,6 @@ namespace SurvivalBackend.Controllers
     [Route("[controller]")]
     public class ActualGameClientDataController : ControllerBase
     {
-        public ActualGameClientDataController(IConfiguration configuration)
-        {
-            _httpClient = new HttpClient();
-
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("authorization", configuration["EdgegapToken"]);
-        }
-
-        private readonly HttpClient _httpClient;
-
         [HttpGet("currentVersion")]
         public IActionResult GetCurrentGameClientVersion()
         {
