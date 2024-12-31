@@ -1,21 +1,34 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SurvivalBackend.Services;
 using SurvivalBackend.Utilities;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using static SurvivalBackend.Services.ServersListService;
 
 namespace SurvivalBackend.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ServersManagementController : ControllerBase
+    public class ServersManagementController(
+        ServersListService serversListService,
+        HttpClient httpClient,
+        IConfiguration configuration) : ControllerBase
     {
+        #region Structs
+
         public class ServerInfo
         {
             public required string Ip { get; set; }
-            public required string RequestId { get; set; }
+            public required string UniqueId { get; set; }
             public required string Name { get; set; }
             public int MaxPlayersCount { get; set; }
             public int CurrentPlayersCount { get; set; }
+        }
+
+        public class DeploymentInfo
+        {
+            public required string Ip { get; set; }
+            public required string RequestId { get; set; }
         }
 
         public class ServerConnectionInfo
@@ -30,23 +43,122 @@ namespace SurvivalBackend.Controllers
             [Required] public int CurrentPlayersCount { get; set; }
         }
 
-        public ServersManagementController(HttpClient httpClient, IConfiguration configuration)
+        public class ServerRegistrationData
         {
-            _httpClient = httpClient;
-            _configuration = configuration;
+            public required string EndPoint { get; set; }
+            public required string BucketName { get; set; }
+            public required string ObjectKey { get; set; }
+            public required string AccessKey { get; set; }
+            public required string SecretKey { get; set; }
         }
 
-        private Dictionary<string, string> _serverNamesCache = new();
+        #endregion
 
-        private Dictionary<string, ServerState> _serverPropertiesCache = new();
+        private readonly ServersListService _serversListService = serversListService;
 
-        private int _currentServerIndex = 1;
+        private readonly Dictionary<string, ServerState> _serversPropertiesCache = [];
 
-        private readonly HttpClient _httpClient;
-        private readonly IConfiguration _configuration;
+        private readonly HttpClient _httpClient = httpClient;
+        private readonly IConfiguration _configuration = configuration;
+
+        #region ServerRegistrationStage
+
+        [HttpGet("registerServer")]
+        public async Task<IActionResult> RegisterServer([FromQuery] string requestId)
+        {
+            (bool isSuccessStatusCode, int statusCode, string content, List<DeploymentInfo> deploymentsList) deployments =
+                await GetDeployments();
+
+            ReleaseServerContainers(deployments.deploymentsList);
+
+            if (deployments.deploymentsList.All(s => s.RequestId != requestId))
+            {
+                return BadRequest("There is no such deployment.");
+            }
+
+            string serverName;
+
+            foreach (var s in _serversListService.Items) // Если уже существует...
+            {
+                if (s.RequestId == requestId)
+                {
+                    serverName = s.ServerName;
+                    goto sending;
+                }
+            }
+
+            foreach (var s in _serversListService.Items) // Ищем свободный...
+            {
+                if (s.RequestId == "null")
+                {
+                    serverName = s.ServerName;
+                    s.RequestId = requestId;
+                    goto sending;
+                }
+            }
+
+            // Создаем новый....
+
+            serverName = GetNewName();
+
+            _serversListService.Items.Add(new ServerContainer(Guid.NewGuid().ToString(), serverName, requestId));
+
+        sending:
+
+#pragma warning disable CS8601 // Возможно, назначение-ссылка, допускающее значение NULL.
+            var serverRegistrationData = new ServerRegistrationData
+            {
+                EndPoint = _configuration["S3EndPoint"],
+                BucketName = _configuration["S3BucketName"],
+                ObjectKey = _configuration["S3CurrentWipeSavesPath"] + serverName + ".json",
+                AccessKey = _configuration["S3AccessKey"],
+                SecretKey = _configuration["S3SecretKey"],
+            };
+#pragma warning restore CS8601 // Возможно, назначение-ссылка, допускающее значение NULL.
+
+            return Ok(serverRegistrationData);
+        }
+
+        private void ReleaseServerContainers(List<DeploymentInfo> deployments)
+        {
+            foreach (var s in _serversListService.Items) 
+            {
+                if (deployments.All(i => i.RequestId != s.RequestId))
+                {
+                    s.RequestId = "null";
+                    s.Ready = false;
+                }
+            }
+        }
+
+        private string GetNewName()
+        {
+            var output = "#" + (_serversListService.Items.Count + 1) + " Server";
+
+            return output;
+        }
+
+        [HttpPost("setServerReady")]
+        public IActionResult SetServerReady([FromQuery] string requestId)
+        {
+            foreach (var s in _serversListService.Items)
+            {
+                if (s.RequestId == requestId)
+                {
+                    s.Ready = true;
+                    return Ok();
+                }
+            }
+
+            return BadRequest();
+        }
+
+        #endregion
+
+        #region ConnectionStage
 
         [HttpGet("connect")]
-        public async Task<IActionResult> ConnectToServer([FromQuery] string requestId, [FromQuery] string clientVersion)
+        public async Task<IActionResult> ConnectToServer([FromQuery] string uniqueId, [FromQuery] string clientVersion)
         {
             if (clientVersion != ActualGameClientData.GetCurrentGameClientVersion())
             {
@@ -56,7 +168,48 @@ namespace SurvivalBackend.Controllers
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("authorization", _configuration["EdgegapToken"]);
 
-            var response = await _httpClient.GetAsync($"https://api.edgegap.com/v1/status/{requestId}");
+            var serverContainer = _serversListService.Items.FirstOrDefault(i => i.UniqueId == uniqueId);
+
+            if (serverContainer == null)
+            {
+                return BadRequest("Unable to determine the server.");
+            }
+
+            if (!serverContainer.Ready)
+            {
+                return BadRequest("Server app don't ready.");
+            }
+
+            HttpResponseMessage response;
+
+            try
+            {
+                response = await _httpClient.GetAsync($"https://api.edgegap.com/v1/status/{serverContainer.RequestId}");
+            }
+            catch (HttpRequestException)
+            {
+                response = new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.ServiceUnavailable,
+                    Content = new StringContent("Service unavailable due to network issues.")
+                };
+            }
+            catch (TaskCanceledException)
+            {
+                response = new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.RequestTimeout,
+                    Content = new StringContent("Request timed out.")
+                };
+            }
+            catch (Exception)
+            {
+                response = new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.InternalServerError,
+                    Content = new StringContent("An unexpected error occurred.")
+                };
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -64,7 +217,13 @@ namespace SurvivalBackend.Controllers
 
                 using var document = JsonDocument.Parse(content);
 
+                var ready = document.RootElement.GetProperty("ready").GetBoolean();
                 var publicIp = document.RootElement.GetProperty("public_ip").GetString();
+ 
+                if (!ready)
+                {
+                    return BadRequest("Server don't ready.");
+                }
 
                 if (string.IsNullOrEmpty(publicIp))
                 {
@@ -96,16 +255,86 @@ namespace SurvivalBackend.Controllers
                 return StatusCode(426, "Client version is outdated.");
             }
 
+            var response = await GetDeployments();
+
+            if (response.isSuccessStatusCode)
+            {
+                var output = new List<ServerInfo>();
+
+                foreach (var s in _serversListService.Items)
+                {
+                    if (!s.Ready)
+                    {
+                        continue;
+                    }
+
+                    foreach (var d in response.deployments)
+                    {
+                        if (s.RequestId == d.RequestId)
+                        {
+                            output.Add(new ServerInfo()
+                            {
+                                Ip = d.Ip,
+                                UniqueId = s.UniqueId,
+                                Name = s.ServerName,
+                                MaxPlayersCount = _serversPropertiesCache.TryGetValue(d.Ip, out var state) ? state.MaxPlayersCount : 0,
+                                CurrentPlayersCount = _serversPropertiesCache.TryGetValue(d.Ip, out state) ? state.CurrentPlayersCount : 0
+                            });
+
+                            break;
+                        }
+                    }
+                }
+
+                return Ok(output);
+            }
+            else
+            {
+                return StatusCode(response.statusCode, response.content);
+            }
+        }
+
+        private async Task<(bool isSuccessStatusCode, int statusCode, string content, List<DeploymentInfo> deployments)> GetDeployments()
+        {
+            var deploymentsList = new List<DeploymentInfo>();
+
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("authorization", _configuration["EdgegapToken"]);
 
-            var response = await _httpClient.GetAsync("https://api.edgegap.com/v1/deployments");
+            HttpResponseMessage response;
+
+            try
+            {
+                response = await _httpClient.GetAsync("https://api.edgegap.com/v1/deployments");
+            }
+            catch (HttpRequestException)
+            {
+                response = new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.ServiceUnavailable,
+                    Content = new StringContent("Service unavailable due to network issues.")
+                };
+            }
+            catch (TaskCanceledException)
+            {
+                response = new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.RequestTimeout,
+                    Content = new StringContent("Request timed out.")
+                };
+            }
+            catch (Exception)
+            {
+                response = new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.InternalServerError,
+                    Content = new StringContent("An unexpected error occurred.")
+                };
+            }
 
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-
-                var servers = new List<ServerInfo>();
 
                 using var document = JsonDocument.Parse(content);
 
@@ -122,25 +351,20 @@ namespace SurvivalBackend.Controllers
                         continue;
                     }
 
-                    var name = GetName(requestId);
-
-                    servers.Add(new ServerInfo
+                    deploymentsList.Add(new DeploymentInfo
                     {
                         Ip = publicIp,
-                        RequestId = requestId,
-                        Name = name,
-                        MaxPlayersCount = _serverPropertiesCache.TryGetValue(publicIp, out var state) ? state.MaxPlayersCount : 0,
-                        CurrentPlayersCount = _serverPropertiesCache.TryGetValue(publicIp, out state) ? state.CurrentPlayersCount : 0
+                        RequestId = requestId
                     });
                 }
+            }
 
-                return Ok(servers);
-            }
-            else
-            {
-                return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
-            }
+            return (response.IsSuccessStatusCode, (int)response.StatusCode, await response.Content.ReadAsStringAsync(), deploymentsList);
         }
+
+        #endregion
+
+        #region ServerStateUpdateStage
 
         [HttpPost("updateServerState")]
         public IActionResult UpdateServerState([FromBody] ServerState serverState)
@@ -152,24 +376,11 @@ namespace SurvivalBackend.Controllers
                 return BadRequest("Unable to determine the sender's IP address.");
             }
 
-            _serverPropertiesCache[ipAddress] = serverState;
+            _serversPropertiesCache[ipAddress] = serverState;
 
             return Ok($"Server {ipAddress} state updated successfully.");
         }
 
-        private string GetName(string requestId)
-        {
-            if (_serverNamesCache.TryGetValue(requestId, out var name))
-            {
-                return name;
-            }
-            else
-            {
-                _serverNamesCache.Add(requestId, "#" + _currentServerIndex + " Server");
-                _currentServerIndex++;
-
-                return _serverNamesCache[requestId];
-            }
-        }
+        #endregion
     }
 }

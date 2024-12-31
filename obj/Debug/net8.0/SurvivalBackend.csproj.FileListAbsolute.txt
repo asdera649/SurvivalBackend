@@ -32,3 +32,7 @@ C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\wipesettings.json
 C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\Quartz.dll
 C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\Quartz.Extensions.DependencyInjection.dll
 C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\Quartz.Extensions.Hosting.dll
+C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\SurvivalBackend.Properties.Resources.resources
+C:\Users\asdera649\Documents\SurvivalBackend\obj\Debug\net8.0\SurvivalBackend.csproj.GenerateResource.cache
+C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\AWSSDK.Core.dll
+C:\Users\asdera649\Documents\SurvivalBackend\bin\Debug\net8.0\AWSSDK.S3.dll

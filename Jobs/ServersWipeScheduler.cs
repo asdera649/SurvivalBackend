@@ -3,18 +3,17 @@ using Newtonsoft.Json;
 
 namespace SurvivalBackend.Jobs
 {
-    public class ServersWipeScheduler
+    public class ServersWipeScheduler(ISchedulerFactory schedulerFactory)
     {
+        #region Structs
+
         public class WipeSettings
         {
             public required string DayOfWeek { get; set; }
             public required string Time { get; set; }
         }
 
-        public ServersWipeScheduler(ISchedulerFactory schedulerFactory)
-        {
-            _schedulerFactory = schedulerFactory;
-        }
+        #endregion
 
         private bool _isStarted;
 
@@ -46,7 +45,7 @@ namespace SurvivalBackend.Jobs
             }
         }
 
-        private readonly ISchedulerFactory _schedulerFactory;
+        private readonly ISchedulerFactory _schedulerFactory = schedulerFactory;
 
         public async Task Start()
         {
@@ -60,12 +59,7 @@ namespace SurvivalBackend.Jobs
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wipesettings.json");
             var jsonData = File.ReadAllText(filePath);
 
-            var wipeSettings = JsonConvert.DeserializeObject<WipeSettings>(jsonData);
-
-            if (wipeSettings == null)
-            {
-                throw new Exception("Failed to desserialize WipeSettings!");
-            }
+            var wipeSettings = JsonConvert.DeserializeObject<WipeSettings>(jsonData) ?? throw new Exception("Failed to desserialize WipeSettings!");
 
             _wipeDayOfWeek = Enum.Parse<DayOfWeek>(wipeSettings.DayOfWeek, ignoreCase: true);
             _wipeTime = TimeSpan.Parse(wipeSettings.Time);
@@ -86,9 +80,9 @@ namespace SurvivalBackend.Jobs
             await scheduler.ScheduleJob(job, trigger);
         }
 
-        private string CronExpressionForDayAndTime(DayOfWeek dayOfWeek, TimeSpan time)
+        private static string CronExpressionForDayAndTime(DayOfWeek dayOfWeek, TimeSpan time)
         {
-            var day = dayOfWeek.ToString().Substring(0, 3).ToUpper();
+            var day = dayOfWeek.ToString()[..3].ToUpper();
 
             return $"0 {time.Minutes} {time.Hours} ? * {day} *";
         }

@@ -18,12 +18,28 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "requestId",
+        "Name": "uniqueId",
         "Type": "System.String",
         "IsRequired": false
       },
       {
         "Name": "clientVersion",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SurvivalBackend.Controllers.ServersManagementController",
+    "Method": "RegisterServer",
+    "RelativePath": "ServersManagement/registerServer",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
         "Type": "System.String",
         "IsRequired": false
       }
@@ -48,6 +64,22 @@
   },
   {
     "ContainingType": "SurvivalBackend.Controllers.ServersManagementController",
+    "Method": "SetServerReady",
+    "RelativePath": "ServersManagement/setServerReady",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SurvivalBackend.Controllers.ServersManagementController",
     "Method": "UpdateServerState",
     "RelativePath": "ServersManagement/updateServerState",
     "HttpMethod": "POST",
@@ -61,6 +93,26 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SurvivalBackend.Controllers.ServersWipeController",
+    "Method": "GetNextExecutionDate",
+    "RelativePath": "ServersWipe",
+    "HttpMethod": "",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.DateTime",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "SurvivalBackend.Controllers.ServersWipeController",

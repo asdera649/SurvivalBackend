@@ -4,10 +4,14 @@ namespace SurvivalBackend.Utilities
 {
     public static class ActualGameClientData
     {
+        #region Structs
+
         public class GameClientData
         {
             public required string GameClientVersion { get; set; }
         }
+
+        #endregion
 
         public static string GetCurrentGameClientVersion()
         {
@@ -16,12 +20,7 @@ namespace SurvivalBackend.Utilities
 
             var gameClientData = JsonConvert.DeserializeObject<GameClientData>(jsonData);
 
-            if (gameClientData == null)
-            {
-                throw new Exception("Failed to desserialize GameClientData!");
-            }
-
-            return gameClientData.GameClientVersion;
+            return gameClientData == null ? throw new Exception("Failed to desserialize GameClientData!") : gameClientData.GameClientVersion;
         }
     }
 }

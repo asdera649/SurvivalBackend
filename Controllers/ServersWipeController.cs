@@ -5,8 +5,10 @@ namespace SurvivalBackend.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ServersWipeController : ControllerBase
+    public class ServersWipeController(ServersWipeScheduler serversWipeScheduler) : ControllerBase
     {
+        #region Structs
+
         public class RemainingTimeToWipe
         {
             public int Days { get; set; }
@@ -14,18 +16,30 @@ namespace SurvivalBackend.Controllers
             public int Minutes { get; set; }
         }
 
-        public ServersWipeController(ServersWipeScheduler serversWipeScheduler) 
-        {
-            _serversWipeScheduler = serversWipeScheduler;
-        }
+        #endregion
 
-        private readonly ServersWipeScheduler _serversWipeScheduler;
+        private readonly ServersWipeScheduler _serversWipeScheduler = serversWipeScheduler;
 
         [HttpGet("remainingTimeToWipe")]
         public IActionResult GetRemainingTimeToWipe()
         {
             var remainingTime = new RemainingTimeToWipe();
 
+            var now = DateTime.Now;
+
+            var nextExecution = GetNextExecutionDate();
+
+            var timeUntil = nextExecution - now;
+
+            remainingTime.Days = timeUntil.Days;
+            remainingTime.Hours = timeUntil.Hours;
+            remainingTime.Minutes = timeUntil.Minutes;
+
+            return Ok(remainingTime);
+        }
+
+        public DateTime GetNextExecutionDate()
+        {
             var now = DateTime.Now;
 
             int daysUntilTarget = ((int)_serversWipeScheduler.WipeDayOfWeek - (int)now.DayOfWeek + 7) % 7;
@@ -35,15 +49,7 @@ namespace SurvivalBackend.Controllers
                 daysUntilTarget = 7;
             }
 
-            var nextExecution = now.Date.AddDays(daysUntilTarget).Add(_serversWipeScheduler.WipeTime);
-
-            var timeUntil = nextExecution - now;
-
-            remainingTime.Days = timeUntil.Days;
-            remainingTime.Hours = timeUntil.Hours;
-            remainingTime.Minutes = timeUntil.Minutes;
-
-            return Ok(remainingTime);
+            return now.Date.AddDays(daysUntilTarget).Add(_serversWipeScheduler.WipeTime);
         }
     }
 }

@@ -1,7 +1,12 @@
 using SurvivalBackend.Jobs;
 using Quartz;
+using SurvivalBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+
+builder.Logging.AddConsole();
 
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
@@ -12,7 +17,11 @@ builder.Services.AddQuartz(q =>
 
 });
 
+builder.Services.AddLogging();
+
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
+builder.Services.AddSingleton<ServersListService>();
 
 builder.Services.AddTransient<ServersWipeHandler>();
 

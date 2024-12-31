@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "mxF1Wn1ZUJY=",
+  "dgSpecHash": "fcUCjJvfqLg=",
   "success": true,
   "projectFilePath": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\SurvivalBackend.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\asdera649\\.nuget\\packages\\awssdk.core\\3.7.400.70\\awssdk.core.3.7.400.70.nupkg.sha512",
+    "C:\\Users\\asdera649\\.nuget\\packages\\awssdk.s3\\3.7.410.12\\awssdk.s3.3.7.410.12.nupkg.sha512",
     "C:\\Users\\asdera649\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\8.0.0\\microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\asdera649\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\asdera649\\.nuget\\packages\\microsoft.extensions.diagnostics.abstractions\\8.0.0\\microsoft.extensions.diagnostics.abstractions.8.0.0.nupkg.sha512",
