@@ -217,12 +217,18 @@ namespace SurvivalBackend.Controllers
 
                 using var document = JsonDocument.Parse(content);
 
-                var ready = document.RootElement.GetProperty("ready").GetBoolean();
+                var currentStatus = document.RootElement.GetProperty("current_status").GetString();
+                var running = document.RootElement.GetProperty("running").GetBoolean();
                 var publicIp = document.RootElement.GetProperty("public_ip").GetString();
  
-                if (!ready)
+                if (currentStatus != "Status.READY")
                 {
                     return BadRequest("Server don't ready.");
+                }
+
+                if (!running)
+                {
+                    return BadRequest("Server don't running.");
                 }
 
                 if (string.IsNullOrEmpty(publicIp))
@@ -277,8 +283,8 @@ namespace SurvivalBackend.Controllers
                                 Ip = d.Ip,
                                 UniqueId = s.UniqueId,
                                 Name = s.ServerName,
-                                MaxPlayersCount = _serversPropertiesCache.TryGetValue(d.Ip, out var state) ? state.MaxPlayersCount : 0,
-                                CurrentPlayersCount = _serversPropertiesCache.TryGetValue(d.Ip, out state) ? state.CurrentPlayersCount : 0
+                                MaxPlayersCount = _serversPropertiesCache.TryGetValue(d.Ip, out var state) ? state.MaxPlayersCount : -1,
+                                CurrentPlayersCount = _serversPropertiesCache.TryGetValue(d.Ip, out state) ? state.CurrentPlayersCount : -1
                             });
 
                             break;
