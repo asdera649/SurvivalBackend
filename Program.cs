@@ -35,6 +35,8 @@ var scheduler = app.Services.GetRequiredService<ServersWipeScheduler>();
 
 await scheduler.Start();
 
+app.MapGet("/", () => "Hello World!");
+
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

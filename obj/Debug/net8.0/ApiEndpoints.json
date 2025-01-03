@@ -1,5 +1,23 @@
 [
   {
+    "ContainingType": "Program\u002B\u003C\u003Ec",
+    "Method": "\u003C\u003CMain\u003E$\u003Eb__0_2",
+    "RelativePath": "",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.String",
+        "MediaTypes": [
+          "text/plain"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "SurvivalBackend.Controllers.ActualGameClientDataController",
     "Method": "GetCurrentGameClientVersion",
     "RelativePath": "ActualGameClientData/currentVersion",
@@ -86,6 +104,11 @@
     "IsController": true,
     "Order": 0,
     "Parameters": [
+      {
+        "Name": "requestId",
+        "Type": "System.String",
+        "IsRequired": false
+      },
       {
         "Name": "serverState",
         "Type": "SurvivalBackend.Controllers.ServersManagementController\u002BServerState",

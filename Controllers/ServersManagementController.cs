@@ -283,8 +283,8 @@ namespace SurvivalBackend.Controllers
                                 Ip = d.Ip,
                                 UniqueId = s.UniqueId,
                                 Name = s.ServerName,
-                                MaxPlayersCount = _serversPropertiesCache.TryGetValue(d.Ip, out var state) ? state.MaxPlayersCount : -1,
-                                CurrentPlayersCount = _serversPropertiesCache.TryGetValue(d.Ip, out state) ? state.CurrentPlayersCount : -1
+                                MaxPlayersCount = _serversPropertiesCache.TryGetValue(d.RequestId, out var state) ? state.MaxPlayersCount : 0,
+                                CurrentPlayersCount = _serversPropertiesCache.TryGetValue(d.RequestId, out state) ? state.CurrentPlayersCount : 0
                             });
 
                             break;
@@ -373,18 +373,16 @@ namespace SurvivalBackend.Controllers
         #region ServerStateUpdateStage
 
         [HttpPost("updateServerState")]
-        public IActionResult UpdateServerState([FromBody] ServerState serverState)
+        public IActionResult UpdateServerState([FromQuery] string requestId, [FromBody] ServerState serverState)
         {
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-
-            if (string.IsNullOrEmpty(ipAddress))
+            if (string.IsNullOrEmpty(requestId))
             {
-                return BadRequest("Unable to determine the sender's IP address.");
+                return BadRequest("Bad requestId, unable to determine the sender.");
             }
 
-            _serversPropertiesCache[ipAddress] = serverState;
+            _serversPropertiesCache[requestId] = serverState;
 
-            return Ok($"Server {ipAddress} state updated successfully.");
+            return Ok($"Server {requestId} state updated successfully.");
         }
 
         #endregion
