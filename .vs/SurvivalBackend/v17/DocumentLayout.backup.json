@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\services\\serverslistservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:services\\serverslistservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\controllers\\serversmanagementcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:controllers\\serversmanagementcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\services\\serverslistservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:services\\serverslistservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -26,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
@@ -43,13 +43,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "ServersManagementController.cs",
               "DocumentMoniker": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Controllers\\ServersManagementController.cs",
               "RelativeDocumentMoniker": "Controllers\\ServersManagementController.cs",
               "ToolTip": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Controllers\\ServersManagementController.cs",
               "RelativeToolTip": "Controllers\\ServersManagementController.cs",
-              "ViewState": "AgIAADgAAAAAAAAAAAAAAIcAAAAzAAAAAAAAAA==",
+              "ViewState": "AgIAAN0AAAAAAAAAAAAAAO4AAABDAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-12-31T14:13:42.015Z",
               "EditorCaption": ""
@@ -69,12 +69,12 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "ServersListService.cs",
               "DocumentMoniker": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Services\\ServersListService.cs",
               "RelativeDocumentMoniker": "Services\\ServersListService.cs",
-              "ToolTip": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Services\\ServersListService.cs*",
-              "RelativeToolTip": "Services\\ServersListService.cs*",
+              "ToolTip": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Services\\ServersListService.cs",
+              "RelativeToolTip": "Services\\ServersListService.cs",
               "ViewState": "AgIAAAwAAAAAAAAAAAAAAB8AAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-12-31T14:06:17.586Z",

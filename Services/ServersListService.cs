@@ -22,7 +22,7 @@ namespace SurvivalBackend.Services
         {
             _logger = logger;
 
-            var basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SurvivalBackend");
+            var basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SBApplicationData");
 
             _logger.LogInformation("[ServersListService]: Save directory: " + basePath);
 
