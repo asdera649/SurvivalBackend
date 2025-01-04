@@ -12,7 +12,6 @@ namespace SurvivalBackend.Controllers
     public class ServersManagementController(
         ServersListService serversListService,
         HttpClient httpClient,
-        ILogger<ServersManagementController> logger,
         IConfiguration configuration) : ControllerBase
     {
         #region Structs
@@ -60,7 +59,6 @@ namespace SurvivalBackend.Controllers
         private readonly static Dictionary<string, ServerState> _serversPropertiesCache = [];
 
         private readonly HttpClient _httpClient = httpClient;
-        private readonly ILogger<ServersManagementController> _logger = logger;
         private readonly IConfiguration _configuration = configuration;
 
         #region ServerRegistrationStage
@@ -258,13 +256,6 @@ namespace SurvivalBackend.Controllers
         [HttpGet("servers")]
         public async Task<IActionResult> GetServers([FromQuery] string clientVersion)
         {
-            _logger.LogInformation("GetServers _serversPropertiesCache:");
-
-            foreach (var s in _serversPropertiesCache)
-            {
-                _logger.LogInformation("key: " + s.Key + ", value: " + s.Value.MaxPlayersCount + ", " + s.Value.CurrentPlayersCount);
-            }
-
             if (clientVersion != ActualGameClientData.GetCurrentGameClientVersion())
             {
                 return StatusCode(426, "Client version is outdated.");
@@ -287,13 +278,11 @@ namespace SurvivalBackend.Controllers
                     {
                         if (s.RequestId == d.RequestId)
                         {
-                            int maxPlayersCount = -3;
-                            int currentPlayersCount = -2;
+                            int maxPlayersCount = 0;
+                            int currentPlayersCount = 0;
 
                             if (_serversPropertiesCache.TryGetValue(d.RequestId, out var serverState))
                             {
-                                _logger.LogInformation("Fucing find");
-
                                 maxPlayersCount = serverState.MaxPlayersCount;
                                 currentPlayersCount = serverState.CurrentPlayersCount;
                             }
@@ -401,13 +390,6 @@ namespace SurvivalBackend.Controllers
             }
 
             _serversPropertiesCache[requestId] = serverState;
-
-            _logger.LogInformation("_serversPropertiesCache:");
-
-            foreach(var s in _serversPropertiesCache)
-            {
-                _logger.LogInformation("key: " + s.Key + ", value: " + s.Value.MaxPlayersCount + ", " + s.Value.CurrentPlayersCount);
-            }
 
             return Ok($"Server {requestId} state updated successfully.");
         }
