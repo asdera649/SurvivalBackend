@@ -18,9 +18,13 @@ namespace SurvivalBackend.Services
 
         #endregion
 
-        public ServersListService()
+        public ServersListService(ILogger<ServersListService> logger)
         {
+            _logger = logger;
+
             var basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SurvivalBackend");
+
+            _logger.LogInformation("[ServersListService]: Save directory: " + basePath);
 
             _filePath = Path.Combine(basePath, "servers.json");
             Directory.CreateDirectory(basePath);
@@ -50,6 +54,8 @@ namespace SurvivalBackend.Services
                 return _items;
             }
         }
+
+        private readonly ILogger<ServersListService> _logger;
 
         private void Save()
         {
