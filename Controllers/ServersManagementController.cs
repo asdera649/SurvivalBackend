@@ -380,7 +380,19 @@ namespace SurvivalBackend.Controllers
                 return BadRequest("Bad requestId, unable to determine the sender.");
             }
 
-            _serversPropertiesCache[requestId] = serverState;
+            if (_serversPropertiesCache.TryGetValue(requestId, out var value))
+            {
+                value.CurrentPlayersCount = serverState.CurrentPlayersCount;
+                value.MaxPlayersCount = serverState.MaxPlayersCount;
+            }
+            else
+            {
+                _serversPropertiesCache.Add(requestId, new ServerState() 
+                { 
+                    CurrentPlayersCount = serverState.CurrentPlayersCount,
+                    MaxPlayersCount = serverState.MaxPlayersCount
+                });
+            }
 
             return Ok($"Server {requestId} state updated successfully.");
         }
