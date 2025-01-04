@@ -12,6 +12,7 @@ namespace SurvivalBackend.Controllers
     public class ServersManagementController(
         ServersListService serversListService,
         HttpClient httpClient,
+        ILogger<ServersManagementController> logger,
         IConfiguration configuration) : ControllerBase
     {
         #region Structs
@@ -59,6 +60,7 @@ namespace SurvivalBackend.Controllers
         private readonly Dictionary<string, ServerState> _serversPropertiesCache = [];
 
         private readonly HttpClient _httpClient = httpClient;
+        private readonly ILogger<ServersManagementController> _logger = logger;
         private readonly IConfiguration _configuration = configuration;
 
         #region ServerRegistrationStage
@@ -283,8 +285,8 @@ namespace SurvivalBackend.Controllers
                                 Ip = d.Ip,
                                 UniqueId = s.UniqueId,
                                 Name = s.ServerName,
-                                MaxPlayersCount = _serversPropertiesCache.TryGetValue(d.RequestId, out var state) ? state.MaxPlayersCount : 0,
-                                CurrentPlayersCount = _serversPropertiesCache.TryGetValue(d.RequestId, out state) ? state.CurrentPlayersCount : 0
+                                MaxPlayersCount = _serversPropertiesCache.TryGetValue(d.RequestId, out var state) ? state.MaxPlayersCount : -1,
+                                CurrentPlayersCount = _serversPropertiesCache.TryGetValue(d.RequestId, out state) ? state.CurrentPlayersCount : -2
                             });
 
                             break;
@@ -392,6 +394,13 @@ namespace SurvivalBackend.Controllers
                     CurrentPlayersCount = serverState.CurrentPlayersCount,
                     MaxPlayersCount = serverState.MaxPlayersCount
                 });
+            }
+
+            _logger.LogInformation("_serversPropertiesCache:");
+
+            foreach(var s in _serversPropertiesCache)
+            {
+                _logger.LogInformation("key: " + s.Key + ", value: " + s.Value.MaxPlayersCount + ", " + s.Value.CurrentPlayersCount);
             }
 
             return Ok($"Server {requestId} state updated successfully.");
