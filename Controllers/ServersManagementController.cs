@@ -280,13 +280,24 @@ namespace SurvivalBackend.Controllers
                     {
                         if (s.RequestId == d.RequestId)
                         {
+                            int maxPlayersCount = -3;
+                            int currentPlayersCount = -2;
+
+                            if (_serversPropertiesCache.TryGetValue(d.RequestId, out var serverState))
+                            {
+                                _logger.LogInformation("Fucing find");
+
+                                maxPlayersCount = serverState.MaxPlayersCount;
+                                currentPlayersCount = serverState.CurrentPlayersCount;
+                            }
+
                             output.Add(new ServerInfo()
                             {
                                 Ip = d.Ip,
                                 UniqueId = s.UniqueId,
                                 Name = s.ServerName,
-                                MaxPlayersCount = _serversPropertiesCache.TryGetValue(d.RequestId, out var state) ? state.MaxPlayersCount : -1,
-                                CurrentPlayersCount = _serversPropertiesCache.TryGetValue(d.RequestId, out state) ? state.CurrentPlayersCount : -2
+                                MaxPlayersCount = maxPlayersCount,
+                                CurrentPlayersCount = currentPlayersCount
                             });
 
                             break;
@@ -382,19 +393,7 @@ namespace SurvivalBackend.Controllers
                 return BadRequest("Bad requestId, unable to determine the sender.");
             }
 
-            if (_serversPropertiesCache.TryGetValue(requestId, out var value))
-            {
-                value.CurrentPlayersCount = serverState.CurrentPlayersCount;
-                value.MaxPlayersCount = serverState.MaxPlayersCount;
-            }
-            else
-            {
-                _serversPropertiesCache.Add(requestId, new ServerState() 
-                { 
-                    CurrentPlayersCount = serverState.CurrentPlayersCount,
-                    MaxPlayersCount = serverState.MaxPlayersCount
-                });
-            }
+            _serversPropertiesCache[requestId] = serverState;
 
             _logger.LogInformation("_serversPropertiesCache:");
 
