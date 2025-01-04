@@ -20,7 +20,10 @@ namespace SurvivalBackend.Services
 
         public ServersListService()
         {
-            _filePath = Path.Combine(AppContext.BaseDirectory, "servers.json");
+            var basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SurvivalBackend");
+
+            _filePath = Path.Combine(basePath, "servers.json");
+            Directory.CreateDirectory(basePath);
 
             _items = [];
             _items.CollectionChanged += OnCollectionChanged;

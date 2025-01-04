@@ -3,16 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\wipesettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:wipesettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\services\\serverslistservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:services\\serverslistservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\controllers\\serversmanagementcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:controllers\\serversmanagementcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\services\\serverslistservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:services\\serverslistservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\wipesettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:wipesettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\controllers\\serverswipecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:controllers\\serverswipecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -26,11 +30,24 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
+              "Title": "ServersWipeController.cs",
+              "DocumentMoniker": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Controllers\\ServersWipeController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ServersWipeController.cs",
+              "ToolTip": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Controllers\\ServersWipeController.cs",
+              "RelativeToolTip": "Controllers\\ServersWipeController.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAB8AAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-04T16:56:55.25Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "wipesettings.json",
               "DocumentMoniker": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\wipesettings.json",
               "RelativeDocumentMoniker": "wipesettings.json",
@@ -49,14 +66,14 @@
               "RelativeDocumentMoniker": "Controllers\\ServersManagementController.cs",
               "ToolTip": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Controllers\\ServersManagementController.cs",
               "RelativeToolTip": "Controllers\\ServersManagementController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIcBAAA9AAAAAAAAAA==",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAAH0BAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-12-31T14:13:42.015Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
@@ -64,18 +81,17 @@
               "RelativeToolTip": "Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-12-31T14:12:19.259Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-12-31T14:12:19.259Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "ServersListService.cs",
               "DocumentMoniker": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Services\\ServersListService.cs",
               "RelativeDocumentMoniker": "Services\\ServersListService.cs",
               "ToolTip": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Services\\ServersListService.cs",
               "RelativeToolTip": "Services\\ServersListService.cs",
-              "ViewState": "AgIAABsAAAAAAAAAAAAAAB4AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAACEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-12-31T14:06:17.586Z",
               "EditorCaption": ""
