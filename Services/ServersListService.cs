@@ -8,12 +8,12 @@ namespace SurvivalBackend.Services
     {
         #region Structs
 
-        public class ServerContainer(string uniqueId, string serverName, string requestId)
+        public class ServerContainer(string uniqueId, string serverName, string requestId, bool ready)
         {
             public string UniqueId { get; set; } = uniqueId;
             public string ServerName { get; } = serverName;
             public string RequestId { get; set; } = requestId;
-            public bool Ready { get; set; }
+            public bool Ready { get; set; } = ready;
         }
 
         #endregion

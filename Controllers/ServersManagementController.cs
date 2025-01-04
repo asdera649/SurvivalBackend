@@ -57,7 +57,7 @@ namespace SurvivalBackend.Controllers
 
         private readonly ServersListService _serversListService = serversListService;
 
-        private readonly Dictionary<string, ServerState> _serversPropertiesCache = [];
+        private readonly static Dictionary<string, ServerState> _serversPropertiesCache = [];
 
         private readonly HttpClient _httpClient = httpClient;
         private readonly ILogger<ServersManagementController> _logger = logger;
@@ -103,7 +103,7 @@ namespace SurvivalBackend.Controllers
 
             serverName = GetNewName();
 
-            _serversListService.Items.Add(new ServerContainer(Guid.NewGuid().ToString(), serverName, requestId));
+            _serversListService.Items.Add(new ServerContainer(Guid.NewGuid().ToString(), serverName, requestId, false));
 
         sending:
 
