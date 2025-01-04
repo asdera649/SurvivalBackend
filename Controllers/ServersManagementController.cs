@@ -258,6 +258,13 @@ namespace SurvivalBackend.Controllers
         [HttpGet("servers")]
         public async Task<IActionResult> GetServers([FromQuery] string clientVersion)
         {
+            _logger.LogInformation("GetServers _serversPropertiesCache:");
+
+            foreach (var s in _serversPropertiesCache)
+            {
+                _logger.LogInformation("key: " + s.Key + ", value: " + s.Value.MaxPlayersCount + ", " + s.Value.CurrentPlayersCount);
+            }
+
             if (clientVersion != ActualGameClientData.GetCurrentGameClientVersion())
             {
                 return StatusCode(426, "Client version is outdated.");
