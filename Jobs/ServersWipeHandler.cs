@@ -26,7 +26,7 @@ namespace SurvivalBackend.Jobs
 
             await ClearS3();
 
-            _serversListService.Items.Clear();
+            await _serversListService.Clear();
 
             await StartEdgegap();
 

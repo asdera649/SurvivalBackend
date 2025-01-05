@@ -35,7 +35,11 @@ var scheduler = app.Services.GetRequiredService<ServersWipeScheduler>();
 
 await scheduler.Start();
 
-app.MapGet("/", () => "Hello World!");
+var serversListService = app.Services.GetRequiredService<ServersListService>();
+
+await serversListService.Load();
+
+app.MapGet("/", () => "Survival Backend");
 
 app.UseAuthorization();
 app.MapControllers();

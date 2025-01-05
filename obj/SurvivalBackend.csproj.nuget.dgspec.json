@@ -54,6 +54,10 @@
               "target": "Package",
               "version": "[13.0.3, )"
             },
+            "NodaTime": {
+              "target": "Package",
+              "version": "[3.2.0, )"
+            },
             "Quartz": {
               "target": "Package",
               "version": "[3.13.1, )"

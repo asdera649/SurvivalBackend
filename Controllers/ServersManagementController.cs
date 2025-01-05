@@ -54,10 +54,27 @@ namespace SurvivalBackend.Controllers
 
         #endregion
 
-        private readonly ServersListService _serversListService = serversListService;
-
         private readonly static Dictionary<string, ServerState> _serversPropertiesCache = [];
 
+        private readonly static List<string> _listOfPossibleServerNames = [
+            "#1 Server",
+            "#2 Server",
+            "#3 Server",
+            "#4 Server",
+            "#5 Server",
+            "#6 Server",
+            "#7 Server",
+            "#8 Server",
+            "#9 Server",
+            "#10 Server",
+            "#11 Server",
+            "#12 Server",
+            "#13 Server",
+            "#14 Server",
+            "#15 Server"
+            ];
+
+        private readonly ServersListService _serversListService = serversListService;
         private readonly HttpClient _httpClient = httpClient;
         private readonly IConfiguration _configuration = configuration;
 
@@ -69,7 +86,7 @@ namespace SurvivalBackend.Controllers
             (bool isSuccessStatusCode, int statusCode, string content, List<DeploymentInfo> deploymentsList) deployments =
                 await GetDeployments();
 
-            ReleaseServerContainers(deployments.deploymentsList);
+            await ReleaseServerContainers(deployments.deploymentsList);
 
             if (deployments.deploymentsList.All(s => s.RequestId != requestId))
             {
@@ -87,12 +104,16 @@ namespace SurvivalBackend.Controllers
                 }
             }
 
-            foreach (var s in _serversListService.Items) // Ищем свободный...
+            for (int i = 0; i < _serversListService.Items.Count; i++) // Ищем свободный...
             {
+                var s = _serversListService.Items[i];
+
                 if (s.RequestId == "null")
                 {
                     serverName = s.ServerName;
-                    s.RequestId = requestId;
+
+                    await _serversListService.Edit(i, new ServerContainer(s.UniqueId, s.ServerName, requestId, s.Ready));
+
                     goto sending;
                 }
             }
@@ -101,11 +122,12 @@ namespace SurvivalBackend.Controllers
 
             serverName = GetNewName();
 
-            _serversListService.Items.Add(new ServerContainer(Guid.NewGuid().ToString(), serverName, requestId, false));
+            await _serversListService.Add(new ServerContainer(Guid.NewGuid().ToString(), serverName, requestId, false));
 
         sending:
 
 #pragma warning disable CS8601 // Возможно, назначение-ссылка, допускающее значение NULL.
+
             var serverRegistrationData = new ServerRegistrationData
             {
                 EndPoint = _configuration["S3EndPoint"],
@@ -114,38 +136,49 @@ namespace SurvivalBackend.Controllers
                 AccessKey = _configuration["S3AccessKey"],
                 SecretKey = _configuration["S3SecretKey"],
             };
+
 #pragma warning restore CS8601 // Возможно, назначение-ссылка, допускающее значение NULL.
 
             return Ok(serverRegistrationData);
         }
 
-        private void ReleaseServerContainers(List<DeploymentInfo> deployments)
+        private async Task ReleaseServerContainers(List<DeploymentInfo> deployments)
         {
-            foreach (var s in _serversListService.Items) 
+            for (int i = 0; i < _serversListService.Items.Count; i++) 
             {
+                ServerContainer s = _serversListService.Items[i];
+
                 if (deployments.All(i => i.RequestId != s.RequestId))
                 {
-                    s.RequestId = "null";
-                    s.Ready = false;
+                    await _serversListService.Edit(i, new ServerContainer(s.UniqueId, s.ServerName, "null", false));
                 }
             }
         }
 
         private string GetNewName()
         {
-            var output = "#" + (_serversListService.Items.Count + 1) + " Server";
+            foreach (var n in _listOfPossibleServerNames)
+            {
+                if (_serversListService.Items.All(i => i.ServerName != n))
+                {
+                    return n;
+                }
+            }
 
-            return output;
+            return "Server(" + Guid.NewGuid().ToString() + ")";
         }
 
         [HttpPost("setServerReady")]
-        public IActionResult SetServerReady([FromQuery] string requestId)
+        public async Task<IActionResult> SetServerReady([FromQuery] string requestId)
         {
-            foreach (var s in _serversListService.Items)
+            for (int i = 0; i < _serversListService.Items.Count; i++)
             {
+                ServerContainer s = _serversListService.Items[i];
+
                 if (s.RequestId == requestId)
                 {
-                    s.Ready = true;
+                    await _serversListService.Edit(i, new ServerContainer(s.UniqueId, s.ServerName, s.RequestId, true));
+
                     return Ok();
                 }
             }
@@ -168,14 +201,23 @@ namespace SurvivalBackend.Controllers
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("authorization", _configuration["EdgegapToken"]);
 
-            var serverContainer = _serversListService.Items.FirstOrDefault(i => i.UniqueId == uniqueId);
+            ServerContainer? serverContainer = null;
+
+            foreach (var s in _serversListService.Items)
+            {
+                if (s.UniqueId == uniqueId)
+                {
+                    serverContainer = s;
+                    break;
+                }
+            }
 
             if (serverContainer == null)
             {
                 return BadRequest("Unable to determine the server.");
             }
 
-            if (!serverContainer.Ready)
+            if (!serverContainer.Value.Ready)
             {
                 return BadRequest("Server app don't ready.");
             }
@@ -184,7 +226,7 @@ namespace SurvivalBackend.Controllers
 
             try
             {
-                response = await _httpClient.GetAsync($"https://api.edgegap.com/v1/status/{serverContainer.RequestId}");
+                response = await _httpClient.GetAsync($"https://api.edgegap.com/v1/status/{serverContainer.Value.RequestId}");
             }
             catch (HttpRequestException)
             {

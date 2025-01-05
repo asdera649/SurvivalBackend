@@ -197,6 +197,19 @@
           }
         }
       },
+      "NodaTime/3.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/NodaTime.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/NodaTime.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "Quartz/3.13.1": {
         "type": "package",
         "dependencies": {
@@ -659,6 +672,27 @@
         "packageIcon.png"
       ]
     },
+    "NodaTime/3.2.0": {
+      "sha512": "yoRA3jEJn8NM0/rQm78zuDNPA3DonNSZdsorMUj+dltc1D+/Lc5h9YXGqbEEZozMGr37lAoYkcSM/KjTVqD0ow==",
+      "type": "package",
+      "path": "nodatime/3.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net6.0/NodaTime.dll",
+        "lib/net6.0/NodaTime.pdb",
+        "lib/net6.0/NodaTime.xml",
+        "lib/net8.0/NodaTime.dll",
+        "lib/net8.0/NodaTime.pdb",
+        "lib/net8.0/NodaTime.xml",
+        "lib/netstandard2.0/NodaTime.dll",
+        "lib/netstandard2.0/NodaTime.pdb",
+        "lib/netstandard2.0/NodaTime.xml",
+        "nodatime.3.2.0.nupkg.sha512",
+        "nodatime.nuspec"
+      ]
+    },
     "Quartz/3.13.1": {
       "sha512": "0S4/gYb/FRQfek65OPAmszbdEmtc4Fq/jSeA5XFnvMIjYL9Zr8g9jWoKneEFzAFJGlESjFULtaUFzValHvqu4A==",
       "type": "package",
@@ -752,6 +786,7 @@
     "net8.0": [
       "AWSSDK.S3 >= 3.7.410.12",
       "Newtonsoft.Json >= 13.0.3",
+      "NodaTime >= 3.2.0",
       "Quartz >= 3.13.1",
       "Quartz.Extensions.DependencyInjection >= 3.13.1",
       "Quartz.Extensions.Hosting >= 3.13.1"
@@ -809,6 +844,10 @@
           "Newtonsoft.Json": {
             "target": "Package",
             "version": "[13.0.3, )"
+          },
+          "NodaTime": {
+            "target": "Package",
+            "version": "[3.2.0, )"
           },
           "Quartz": {
             "target": "Package",

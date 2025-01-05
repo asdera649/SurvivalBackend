@@ -1,5 +1,6 @@
 ﻿using Quartz;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace SurvivalBackend.Jobs
 {
@@ -11,6 +12,7 @@ namespace SurvivalBackend.Jobs
         {
             public required string DayOfWeek { get; set; }
             public required string Time { get; set; }
+            public required string TimeZone { get; set; }
         }
 
         #endregion
@@ -62,7 +64,14 @@ namespace SurvivalBackend.Jobs
             var wipeSettings = JsonConvert.DeserializeObject<WipeSettings>(jsonData) ?? throw new Exception("Failed to desserialize WipeSettings!");
 
             _wipeDayOfWeek = Enum.Parse<DayOfWeek>(wipeSettings.DayOfWeek, ignoreCase: true);
-            _wipeTime = TimeSpan.Parse(wipeSettings.Time);
+
+            var timeZone = TimeZoneInfo.FindSystemTimeZoneById(wipeSettings.TimeZone);
+
+            var targetTime = DateTime.ParseExact(wipeSettings.Time, "HH:mm", CultureInfo.InvariantCulture);
+
+            var localTime = TimeZoneInfo.ConvertTime(targetTime, timeZone, TimeZoneInfo.Local);
+
+            _wipeTime = localTime.TimeOfDay;
 
             var cronExpression = CronExpressionForDayAndTime(_wipeDayOfWeek, _wipeTime);
 
