@@ -9,21 +9,13 @@ namespace SurvivalBackend.Services
     {
         #region Structs
 
-        public struct ServerContainer
+        [method: JsonConstructor]
+        public struct ServerContainer(string uniqueId, string serverName, string requestId, bool ready)
         {
-            [JsonConstructor]
-            public ServerContainer(string uniqueId, string serverName, string requestId, bool ready)
-            {
-                UniqueId = uniqueId;
-                ServerName = serverName;
-                RequestId = requestId;
-                Ready = ready;
-            }
-
-            public string UniqueId { get; set; }
-            public string ServerName { get; }
-            public string RequestId { get; set; }
-            public bool Ready { get; set; }
+            public string UniqueId { get; set; } = uniqueId;
+            public string ServerName { get; } = serverName;
+            public string RequestId { get; set; } = requestId;
+            public bool Ready { get; set; } = ready;
         }
 
         #endregion
@@ -83,19 +75,6 @@ namespace SurvivalBackend.Services
             {
                 try
                 {
-//#pragma warning disable CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
-
-//                    if (!await CheckIfKeyExists(client, _configuration["S3BucketName"], _configuration["S3ServersListSavesPath"]))
-//                    {
-//                        _logger.LogWarning("[ServersListService]: Failed to load servers list saves, the specified key does not exist in S3");
-
-//                        _isLoaded = true;
-
-//                        return;
-//                    }
-
-//#pragma warning restore CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
-
                     var listRequest = new ListObjectsV2Request
                     {
                         BucketName = _configuration["S3BucketName"],
@@ -330,27 +309,6 @@ namespace SurvivalBackend.Services
             }
 
             _logger.LogInformation($"[ServersListService]: Server list save successfully unloaded, path: {path}");
-        }
-
-        private static async Task<bool> CheckIfKeyExists(AmazonS3Client client, string bucketName, string key)
-        {
-            try
-            {
-                var request = new ListObjectsV2Request
-                {
-                    BucketName = bucketName,
-                    Prefix = key,
-                    MaxKeys = 1
-                };
-
-                var response = await client.ListObjectsV2Async(request);
-
-                return response.S3Objects.Count > 0 && response.S3Objects[0].Key == key;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
         }
 
         private string SaveLocally(int index)

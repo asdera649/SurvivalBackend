@@ -55,19 +55,5 @@ namespace SurvivalBackend.Controllers
 
             return nextExecutionDateTime;
         }
-
-        //public DateTime GetNextExecutionDate()
-        //{
-        //    var now = DateTime.Now;
-
-        //    int daysUntilTarget = ((int)_serversWipeScheduler.WipeDayOfWeek - (int)now.DayOfWeek + 7) % 7;
-
-        //    if (daysUntilTarget == 0 && now.TimeOfDay > _serversWipeScheduler.WipeTime)
-        //    {
-        //        daysUntilTarget = 7;
-        //    }
-
-        //    return now.Date.AddDays(daysUntilTarget).Add(_serversWipeScheduler.WipeTime);
-        //}
     }
 }
