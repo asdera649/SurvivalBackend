@@ -1,6 +1,7 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SurvivalBackend.Services
 {
@@ -8,12 +9,21 @@ namespace SurvivalBackend.Services
     {
         #region Structs
 
-        public struct ServerContainer(string uniqueId, string serverName, string requestId, bool ready)
+        public struct ServerContainer
         {
-            public string UniqueId { get; set; } = uniqueId;
-            public string ServerName { get; } = serverName;
-            public string RequestId { get; set; } = requestId;
-            public bool Ready { get; set; } = ready;
+            [JsonConstructor]
+            public ServerContainer(string uniqueId, string serverName, string requestId, bool ready)
+            {
+                UniqueId = uniqueId;
+                ServerName = serverName;
+                RequestId = requestId;
+                Ready = ready;
+            }
+
+            public string UniqueId { get; set; }
+            public string ServerName { get; }
+            public string RequestId { get; set; }
+            public bool Ready { get; set; }
         }
 
         #endregion
@@ -126,7 +136,7 @@ namespace SurvivalBackend.Services
 
                             _items.Add(item);
 
-                            _logger.LogInformation($"Server list save loaded: {s3Object.Key} to {localFilePath}");
+                            _logger.LogInformation($"[ServersListService]: Server list save loaded: {s3Object.Key} to {localFilePath}");
                         }
 
                         listRequest.ContinuationToken = listResponse.NextContinuationToken;

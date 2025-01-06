@@ -7,12 +7,12 @@
       "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:services\\serverslistservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\controllers\\serversmanagementcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:controllers\\serversmanagementcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DC51F45D-7B1F-4DBC-B54D-66BCAC603BDA}|SurvivalBackend.csproj|c:\\users\\asdera649\\documents\\survivalbackend\\jobs\\serverswipescheduler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -44,14 +44,14 @@
               "RelativeDocumentMoniker": "Services\\ServersListService.cs",
               "ToolTip": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Services\\ServersListService.cs",
               "RelativeToolTip": "Services\\ServersListService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFkAAAAVAAAAAAAAAA==",
+              "ViewState": "AgIAAHMAAAAAAAAAAAAAAJEAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-01-06T08:40:41.499Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
@@ -59,8 +59,7 @@
               "RelativeToolTip": "Program.cs",
               "ViewState": "AgIAABgAAAAAAAAAAAAAACcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-06T07:49:13.854Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-01-06T07:49:13.854Z"
             },
             {
               "$type": "Document",
@@ -84,8 +83,7 @@
               "RelativeToolTip": "Controllers\\ServersWipeController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-05T19:39:33.325Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-01-05T19:39:33.325Z"
             },
             {
               "$type": "Document",
@@ -97,18 +95,17 @@
               "RelativeToolTip": "Jobs\\ServersWipeScheduler.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAADoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-01-05T19:24:12.94Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-01-05T19:24:12.94Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "ServersManagementController.cs",
               "DocumentMoniker": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Controllers\\ServersManagementController.cs",
               "RelativeDocumentMoniker": "Controllers\\ServersManagementController.cs",
               "ToolTip": "C:\\Users\\asdera649\\Documents\\SurvivalBackend\\Controllers\\ServersManagementController.cs",
               "RelativeToolTip": "Controllers\\ServersManagementController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEsAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAEABAAAAAAAAAAAQwE4BAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-01-05T12:48:18.281Z",
               "EditorCaption": ""
