@@ -73,18 +73,18 @@ namespace SurvivalBackend.Services
             {
                 try
                 {
-#pragma warning disable CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
+//#pragma warning disable CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
 
-                    if (!await CheckIfKeyExists(client, _configuration["S3BucketName"], _configuration["S3ServersListSavesPath"]))
-                    {
-                        _logger.LogWarning("[ServersListService]: Failed to load servers list saves, the specified key does not exist in S3");
+//                    if (!await CheckIfKeyExists(client, _configuration["S3BucketName"], _configuration["S3ServersListSavesPath"]))
+//                    {
+//                        _logger.LogWarning("[ServersListService]: Failed to load servers list saves, the specified key does not exist in S3");
 
-                        _isLoaded = true;
+//                        _isLoaded = true;
 
-                        return;
-                    }
+//                        return;
+//                    }
 
-#pragma warning restore CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
+//#pragma warning restore CS8604 // Возможно, аргумент-ссылка, допускающий значение NULL.
 
                     var listRequest = new ListObjectsV2Request
                     {
@@ -153,6 +153,8 @@ namespace SurvivalBackend.Services
             }
 
             _isLoaded = true;
+
+            _logger.LogInformation("[ServersListService]: Servers list saves successfully loaded.");
         }
 
         public async Task Add(ServerContainer serverContainer)
