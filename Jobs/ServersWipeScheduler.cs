@@ -1,10 +1,10 @@
 ﻿using Quartz;
 using Newtonsoft.Json;
-using System.Globalization;
+using NodaTime;
 
 namespace SurvivalBackend.Jobs
 {
-    public class ServersWipeScheduler(ISchedulerFactory schedulerFactory)
+    public class ServersWipeScheduler(ISchedulerFactory schedulerFactory, ILogger<ServersWipeScheduler> logger)
     {
         #region Structs
 
@@ -33,8 +33,8 @@ namespace SurvivalBackend.Jobs
             }
         }
 
-        private TimeSpan _wipeTime;
-        public TimeSpan WipeTime
+        private LocalTime _wipeTime;
+        public LocalTime WipeTime
         {
             get
             {
@@ -48,6 +48,7 @@ namespace SurvivalBackend.Jobs
         }
 
         private readonly ISchedulerFactory _schedulerFactory = schedulerFactory;
+        private readonly ILogger<ServersWipeScheduler> _logger = logger;
 
         public async Task Start()
         {
@@ -65,13 +66,20 @@ namespace SurvivalBackend.Jobs
 
             _wipeDayOfWeek = Enum.Parse<DayOfWeek>(wipeSettings.DayOfWeek, ignoreCase: true);
 
-            var timeZone = TimeZoneInfo.FindSystemTimeZoneById(wipeSettings.TimeZone);
+            DateTimeZone targetZone = DateTimeZoneProviders.Tzdb[wipeSettings.TimeZone];
 
-            var targetTime = DateTime.ParseExact(wipeSettings.Time, "HH:mm", CultureInfo.InvariantCulture);
+            LocalTime targetTime = LocalTime.FromHourMinuteSecondNanosecond(
+                int.Parse(wipeSettings.Time.Split(':')[0]),
+                int.Parse(wipeSettings.Time.Split(':')[1]),
+                0, 0);
 
-            var localTime = TimeZoneInfo.ConvertTime(targetTime, timeZone, TimeZoneInfo.Local);
+            LocalDate today = SystemClock.Instance.GetCurrentInstant().InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault()).Date;
 
-            _wipeTime = localTime.TimeOfDay;
+            ZonedDateTime targetDateTime = targetZone.AtStrictly(today.At(targetTime));
+
+            ZonedDateTime localDateTime = targetDateTime.WithZone(DateTimeZoneProviders.Tzdb.GetSystemDefault());
+
+            _wipeTime = localDateTime.TimeOfDay;
 
             var cronExpression = CronExpressionForDayAndTime(_wipeDayOfWeek, _wipeTime);
 
@@ -87,13 +95,15 @@ namespace SurvivalBackend.Jobs
                 .Build();
 
             await scheduler.ScheduleJob(job, trigger);
+
+            _logger.LogInformation("[ServersWipeScheduler] Started a wiping task on: " + _wipeDayOfWeek + ", " + _wipeTime);
         }
 
-        private static string CronExpressionForDayAndTime(DayOfWeek dayOfWeek, TimeSpan time)
+        private static string CronExpressionForDayAndTime(DayOfWeek dayOfWeek, LocalTime time)
         {
             var day = dayOfWeek.ToString()[..3].ToUpper();
 
-            return $"0 {time.Minutes} {time.Hours} ? * {day} *";
+            return $"0 {time.Minute} {time.Hour} ? * {day} *";
         }
     }
 }

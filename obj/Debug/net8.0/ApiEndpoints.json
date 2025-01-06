@@ -127,7 +127,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.DateTime",
+        "Type": "NodaTime.ZonedDateTime",
         "MediaTypes": [
           "text/plain",
           "application/json",
