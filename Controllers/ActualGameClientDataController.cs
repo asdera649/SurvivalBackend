@@ -1,16 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SurvivalBackend.Utilities;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using SurvivalBackend.Security;
+using SurvivalBackend.Services;
 
-namespace SurvivalBackend.Controllers
+namespace SurvivalBackend.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+[EnableRateLimiting(RateLimitPolicies.Public)]
+public sealed class ActualGameClientDataController(IGameClientVersionProvider gameClientVersionProvider) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class ActualGameClientDataController : ControllerBase
+    private readonly IGameClientVersionProvider _gameClientVersionProvider = gameClientVersionProvider;
+
+    [HttpGet("currentVersion")]
+    public IActionResult GetCurrentGameClientVersion()
     {
-        [HttpGet("currentVersion")]
-        public IActionResult GetCurrentGameClientVersion()
-        {
-            return Ok(ActualGameClientData.GetCurrentGameClientVersion());
-        }
+        return Ok(_gameClientVersionProvider.CurrentVersion);
     }
 }

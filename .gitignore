@@ -1,0 +1,29 @@
+## Build output
+bin/
+obj/
+
+## Visual Studio / Rider
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.idea/
+
+## ASP.NET / local configuration
+appsettings.*.local.json
+*.Development.local.json
+
+## Logs and diagnostics
+logs/
+*.log
+TestResults/
+coverage/
+
+## Runtime data
+Data/
+ServersListSaves/
+
+## OS files
+.DS_Store
+Thumbs.db

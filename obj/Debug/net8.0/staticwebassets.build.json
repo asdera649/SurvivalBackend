@@ -1,11 +1,1 @@
-{
-  "Version": 1,
-  "Hash": "hQyPkYj5hbN7DPrMLCACrNQ6J9zgaAxSQfXOHMM8LEI=",
-  "Source": "SurvivalBackend",
-  "BasePath": "_content/SurvivalBackend",
-  "Mode": "Default",
-  "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
-}
+{"Version":1,"Hash":"i8FnBAmM9vP1mFvCNLPyi9aB2hocjjyoGXZs04UHDjw=","Source":"SurvivalBackend","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}

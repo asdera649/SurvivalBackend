@@ -1,325 +1,350 @@
-﻿using Amazon.S3;
-using Amazon.S3.Model;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using Microsoft.Extensions.Options;
+using SurvivalBackend.Contracts;
+using SurvivalBackend.Infrastructure.Registry;
+using SurvivalBackend.Options;
 
-namespace SurvivalBackend.Services
+namespace SurvivalBackend.Services;
+
+public sealed class ServersListService(
+    IServerRegistryStore registryStore,
+    IOptions<ServerRegistryOptions> registryOptions,
+    ILogger<ServersListService> logger)
 {
-    public class ServersListService(ILogger<ServersListService> logger, IConfiguration configuration)
+    public const string UnassignedRequestId = "null";
+
+    private static readonly IReadOnlyList<string> PossibleServerNames =
+    [
+        "#1 Server",
+        "#2 Server",
+        "#3 Server",
+        "#4 Server",
+        "#5 Server",
+        "#6 Server",
+        "#7 Server",
+        "#8 Server",
+        "#9 Server",
+        "#10 Server",
+        "#11 Server",
+        "#12 Server",
+        "#13 Server",
+        "#14 Server",
+        "#15 Server"
+    ];
+
+    private readonly IServerRegistryStore _registryStore = registryStore;
+    private readonly ServerRegistryOptions _registryOptions = registryOptions.Value;
+    private readonly ILogger<ServersListService> _logger = logger;
+    private readonly SemaphoreSlim _mutationLock = new(1, 1);
+    private readonly object _sync = new();
+    private readonly List<ServerContainer> _items = [];
+    private readonly Dictionary<string, ServerRuntimeState> _runtimeStates = [];
+
+    private bool _isLoaded;
+
+    public IReadOnlyList<ServerContainer> Items => GetServersSnapshot();
+
+    public async Task LoadAsync(CancellationToken cancellationToken = default)
     {
-        #region Structs
-
-        [method: JsonConstructor]
-        public struct ServerContainer(string uniqueId, string serverName, string requestId, bool ready)
+        await _mutationLock.WaitAsync(cancellationToken);
+        try
         {
-            public string UniqueId { get; set; } = uniqueId;
-            public string ServerName { get; } = serverName;
-            public string RequestId { get; set; } = requestId;
-            public bool Ready { get; set; } = ready;
+            _logger.LogInformation("Loading server registry...");
+            var loadedServers = await _registryStore.LoadAsync(cancellationToken);
+            var normalizedServers = NormalizeLoadedServers(loadedServers);
+
+            ReplaceItems(normalizedServers, isLoaded: true);
+            _logger.LogInformation("Loaded {Count} server registry records.", normalizedServers.Count);
         }
-
-        #endregion
-
-        private readonly string _filePath = Path.Combine(AppContext.BaseDirectory, "ServersListSaves");
-        private readonly List<ServerContainer> _items = [];
-
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
-
-        private bool _isLoaded;
-
-        public IReadOnlyList<ServerContainer> Items
+        finally
         {
-            get
-            {
-                if (!_isLoaded)
-                {
-                    throw new Exception("The server list has not been uploaded yet, you need to upload the server list first!");
-                }
+            _mutationLock.Release();
+        }
+    }
 
-                return _items;
+    public async Task<ServerContainer> RegisterDeploymentAsync(
+        string requestId,
+        IReadOnlySet<string> activeRequestIds,
+        CancellationToken cancellationToken)
+    {
+        await _mutationLock.WaitAsync(cancellationToken);
+        try
+        {
+            EnsureLoaded();
+
+            var candidate = GetServersSnapshotNoThrow().ToList();
+            ReleaseMissingDeployments(candidate, activeRequestIds);
+
+            var existingIndex = candidate.FindIndex(server => server.RequestId == requestId);
+            if (existingIndex >= 0)
+            {
+                await PersistAndCommitAsync(candidate, cancellationToken);
+                return candidate[existingIndex];
+            }
+
+            var freeIndex = candidate.FindIndex(server => server.RequestId == UnassignedRequestId);
+            if (freeIndex >= 0)
+            {
+                var freeServer = candidate[freeIndex];
+                candidate[freeIndex] = freeServer with
+                {
+                    RequestId = requestId,
+                    Ready = false
+                };
+
+                await PersistAndCommitAsync(candidate, cancellationToken);
+                return candidate[freeIndex];
+            }
+
+            var newServer = new ServerContainer(
+                Guid.NewGuid().ToString("D"),
+                GetNewName(candidate),
+                requestId,
+                Ready: false);
+
+            candidate.Add(newServer);
+            await PersistAndCommitAsync(candidate, cancellationToken);
+            return newServer;
+        }
+        finally
+        {
+            _mutationLock.Release();
+        }
+    }
+
+    public async Task<bool> MarkReadyAsync(string requestId, CancellationToken cancellationToken)
+    {
+        await _mutationLock.WaitAsync(cancellationToken);
+        try
+        {
+            EnsureLoaded();
+
+            var candidate = GetServersSnapshotNoThrow().ToList();
+            var index = candidate.FindIndex(server => server.RequestId == requestId);
+            if (index < 0)
+            {
+                return false;
+            }
+
+            if (candidate[index].Ready)
+            {
+                return true;
+            }
+
+            candidate[index] = candidate[index] with { Ready = true };
+            await PersistAndCommitAsync(candidate, cancellationToken);
+            return true;
+        }
+        finally
+        {
+            _mutationLock.Release();
+        }
+    }
+
+    public async Task<int> ReleaseMissingDeploymentsAsync(
+        IReadOnlySet<string> activeRequestIds,
+        CancellationToken cancellationToken)
+    {
+        await _mutationLock.WaitAsync(cancellationToken);
+        try
+        {
+            EnsureLoaded();
+
+            var candidate = GetServersSnapshotNoThrow().ToList();
+            var releasedCount = ReleaseMissingDeployments(candidate, activeRequestIds);
+            if (releasedCount == 0)
+            {
+                return 0;
+            }
+
+            await PersistAndCommitAsync(candidate, cancellationToken);
+            return releasedCount;
+        }
+        finally
+        {
+            _mutationLock.Release();
+        }
+    }
+
+    public async Task ClearAsync(CancellationToken cancellationToken)
+    {
+        await _mutationLock.WaitAsync(cancellationToken);
+        try
+        {
+            EnsureLoaded();
+
+            await _registryStore.ClearAsync(cancellationToken);
+            ReplaceItems([], isLoaded: true);
+
+            lock (_sync)
+            {
+                _runtimeStates.Clear();
             }
         }
-
-        private readonly ILogger<ServersListService> _logger = logger;
-        private readonly IConfiguration _configuration = configuration;
-
-        public async Task Load()
+        finally
         {
-            start:
+            _mutationLock.Release();
+        }
+    }
 
-            _logger.LogInformation("[ServersListService]: Servers list saves loading...");
+    public void UpdateRuntimeState(string requestId, ServerState serverState)
+    {
+        if (serverState.CurrentPlayersCount > serverState.MaxPlayersCount)
+        {
+            throw new ArgumentException("CurrentPlayersCount cannot be greater than MaxPlayersCount.");
+        }
 
+        lock (_sync)
+        {
+            _runtimeStates[requestId] = new ServerRuntimeState(
+                serverState.MaxPlayersCount,
+                serverState.CurrentPlayersCount,
+                DateTimeOffset.UtcNow);
+        }
+    }
+
+    public bool TryGetRuntimeState(string requestId, out ServerRuntimeState runtimeState)
+    {
+        lock (_sync)
+        {
+            RemoveStaleRuntimeStatesNoLock();
+            return _runtimeStates.TryGetValue(requestId, out runtimeState!);
+        }
+    }
+
+    public IReadOnlyDictionary<string, ServerRuntimeState> GetRuntimeStatesSnapshot()
+    {
+        lock (_sync)
+        {
+            RemoveStaleRuntimeStatesNoLock();
+            return new Dictionary<string, ServerRuntimeState>(_runtimeStates);
+        }
+    }
+
+    public IReadOnlyList<ServerContainer> GetServersSnapshot()
+    {
+        EnsureLoaded();
+        return GetServersSnapshotNoThrow();
+    }
+
+    private IReadOnlyList<ServerContainer> GetServersSnapshotNoThrow()
+    {
+        lock (_sync)
+        {
+            return _items.ToList();
+        }
+    }
+
+    private async Task PersistAndCommitAsync(
+        IReadOnlyList<ServerContainer> candidate,
+        CancellationToken cancellationToken)
+    {
+        await _registryStore.SaveAsync(candidate, cancellationToken);
+        ReplaceItems(candidate, isLoaded: true);
+    }
+
+    private void ReplaceItems(IReadOnlyList<ServerContainer> items, bool isLoaded)
+    {
+        lock (_sync)
+        {
             _items.Clear();
-
-            if (!Directory.Exists(_filePath))
-            {
-                Directory.CreateDirectory(_filePath);
-            }
-            else
-            {
-                var files = Directory.GetFiles(_filePath);
-
-                foreach (var f in files)
-                {
-                    File.Delete(f);
-                }
-            }
-
-            var config = new AmazonS3Config
-            {
-                ServiceURL = $"https://{_configuration["S3EndPoint"]}",
-                ForcePathStyle = true
-            };
-
-            using (var client = new AmazonS3Client(_configuration["S3AccessKey"], _configuration["S3SecretKey"], config))
-            {
-                try
-                {
-                    var listRequest = new ListObjectsV2Request
-                    {
-                        BucketName = _configuration["S3BucketName"],
-                        Prefix = _configuration["S3ServersListSavesPath"]
-                    };
-
-                    ListObjectsV2Response listResponse;
-
-                    do
-                    {
-                        listResponse = await client.ListObjectsV2Async(listRequest);
-
-                        foreach (var s3Object in listResponse.S3Objects)
-                        {
-                            if (s3Object.Key.EndsWith('/'))
-                            {
-                                continue;
-                            }
-
-                            string localFilePath = Path.Combine(_filePath, Path.GetFileName(s3Object.Key));
-
-                            var getRequest = new GetObjectRequest
-                            {
-                                BucketName = _configuration["S3BucketName"],
-                                Key = s3Object.Key
-                            };
-
-                            using (var getObjectResponse = await client.GetObjectAsync(getRequest))
-                            using (var responseStream = getObjectResponse.ResponseStream)
-                            using (var fileStream = new FileStream(localFilePath, FileMode.Create, FileAccess.Write))
-                            {
-                                await responseStream.CopyToAsync(fileStream);
-                            }
-
-                            var json = File.ReadAllText(localFilePath);
-
-                            var item = JsonSerializer.Deserialize<ServerContainer>(json);
-
-                            _items.Add(item);
-
-                            _logger.LogInformation($"[ServersListService]: Server list save loaded: {s3Object.Key} to {localFilePath}");
-                        }
-
-                        listRequest.ContinuationToken = listResponse.NextContinuationToken;
-
-                    } 
-                    while (listResponse.IsTruncated);
-                }
-                catch (AmazonS3Exception e)
-                {
-                    _logger.LogError($"[ServersListService]: Servers list saves loading failed, S3 error: {e.Message}");
-
-                    await Task.Delay(5000);
-
-                    goto start;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"[ServersListService]: Servers list saves loading failed, error: {e.Message}");
-
-                    await Task.Delay(5000);
-
-                    goto start;
-                }
-            }
-
-            _isLoaded = true;
-
-            _logger.LogInformation("[ServersListService]: Servers list saves successfully loaded.");
+            _items.AddRange(items);
+            _isLoaded = isLoaded;
         }
+    }
 
-        public async Task Add(ServerContainer serverContainer)
+    private void EnsureLoaded()
+    {
+        lock (_sync)
         {
             if (!_isLoaded)
             {
-                throw new Exception("The server list has not been uploaded yet, you need to upload the server list first!");
+                throw new InvalidOperationException("Server registry has not been loaded yet.");
             }
-
-            _items.Add(serverContainer);
-
-            var index = _items.Count - 1;
-
-            var path = SaveLocally(index);
-
-            await UnloadSave(path);
         }
+    }
 
-        public async Task Edit(int index, ServerContainer serverContainer)
+    private int ReleaseMissingDeployments(
+        List<ServerContainer> servers,
+        IReadOnlySet<string> activeRequestIds)
+    {
+        var releasedCount = 0;
+
+        for (var index = 0; index < servers.Count; index++)
         {
-            if (!_isLoaded)
+            var server = servers[index];
+            if (server.RequestId == UnassignedRequestId || activeRequestIds.Contains(server.RequestId))
             {
-                throw new Exception("The server list has not been uploaded yet, you need to upload the server list first!");
+                continue;
             }
 
-            _items[index] = serverContainer;
-
-            var parh = SaveLocally(index);
-
-            await UnloadSave(parh);
-        }
-
-        public async Task Clear()
-        {
-            if (!_isLoaded)
+            servers[index] = server with
             {
-                throw new Exception("The server list has not been uploaded yet, you need to upload the server list first!");
-            }
-
-            _items.Clear();
-
-            var config = new AmazonS3Config
-            {
-                ServiceURL = $"https://{_configuration["S3EndPoint"]}",
-                ForcePathStyle = true
+                RequestId = UnassignedRequestId,
+                Ready = false
             };
 
-            using (var client = new AmazonS3Client(_configuration["S3AccessKey"], _configuration["S3SecretKey"], config))
-            {
-                start:
-
-                _logger.LogInformation("[ServersListService]: Servers list saves wiping...");
-
-                try
-                {
-                    var listRequest = new ListObjectsV2Request
-                    {
-                        BucketName = _configuration["S3BucketName"],
-                        Prefix = _configuration["S3ServersListSavesPath"]
-                    };
-
-                    ListObjectsV2Response listResponse;
-
-                    do
-                    {
-                        listResponse = await client.ListObjectsV2Async(listRequest);
-
-                        if (listResponse.S3Objects.Count == 0)
-                        {
-                            _logger.LogInformation("[ServersListService]: There are no files to delete in the " +
-                                $"{_configuration["S3ServersListSavesPath"]} folder.");
-
-                            return;
-                        }
-
-                        var deleteRequest = new DeleteObjectsRequest
-                        {
-                            BucketName = _configuration["S3BucketName"],
-                            Objects = []
-                        };
-
-                        foreach (var s3Object in listResponse.S3Objects)
-                        {
-                            deleteRequest.Objects.Add(new KeyVersion
-                            {
-                                Key = s3Object.Key
-                            });
-                        }
-
-                        DeleteObjectsResponse deleteResponse = await client.DeleteObjectsAsync(deleteRequest);
-
-                        _logger.LogInformation($"[ServersListService]: Removed {deleteResponse.DeletedObjects.Count} objects from " +
-                            $"{_configuration["S3ServersListSavesPath"]}.");
-
-                        listRequest.ContinuationToken = listResponse.NextContinuationToken;
-
-                    }
-                    while (listResponse.IsTruncated);
-                }
-                catch (AmazonS3Exception e)
-                {
-                    _logger.LogError($"[ServersListService]: Servers list saves wiping failed, S3 error: {e.Message}");
-
-                    await Task.Delay(5000);
-
-                    goto start;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"[ServersListService]: Servers list saves wiping failed, error: {e.Message}");
-
-                    await Task.Delay(5000);
-
-                    goto start;
-                }
-            }
-
-            _logger.LogInformation("[ServersListService]: Servers list saves successfully wiped.");
+            releasedCount++;
         }
 
-        private async Task UnloadSave(string path)
+        if (releasedCount > 0)
         {
-            var config = new AmazonS3Config
-            {
-                ServiceURL = $"https://{_configuration["S3EndPoint"]}",
-                ForcePathStyle = true
-            };
-
-            using (var client = new AmazonS3Client(_configuration["S3AccessKey"], _configuration["S3SecretKey"], config))
-            {
-                start:
-
-                _logger.LogInformation($"[ServersListService]: Start unloading a server list save, path: {path}");
-
-                try
-                {
-                    var putRequest = new PutObjectRequest
-                    {
-                        BucketName = _configuration["S3BucketName"],
-                        Key = _configuration["S3ServersListSavesPath"] + Path.GetFileName(path),
-                        FilePath = path,
-                        ContentType = "application/octet-stream"
-                    };
-
-                    await client.PutObjectAsync(putRequest);
-                }
-                catch (AmazonS3Exception e)
-                {
-                    _logger.LogError($"[ServersListService]: Unloading a server list save failed, path: {path}, S3 error: {e.Message}");
-
-                    await Task.Delay(5000);
-
-                    goto start;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"[ServersListService]: Unloading a server list save failed, path: {path}, error: {e.Message}");
-
-                    await Task.Delay(5000);
-
-                    goto start;
-                }
-            }
-
-            _logger.LogInformation($"[ServersListService]: Server list save successfully unloaded, path: {path}");
+            _logger.LogInformation("Released {Count} inactive server registry slots.", releasedCount);
         }
 
-        private string SaveLocally(int index)
+        return releasedCount;
+    }
+
+    private IReadOnlyList<ServerContainer> NormalizeLoadedServers(IReadOnlyList<ServerContainer> loadedServers)
+    {
+        var normalized = new List<ServerContainer>();
+        var uniqueIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var server in loadedServers)
         {
-            var path = Path.Combine(_filePath, (index + 1) + "server.json");
+            if (string.IsNullOrWhiteSpace(server.UniqueId)
+                || string.IsNullOrWhiteSpace(server.ServerName)
+                || string.IsNullOrWhiteSpace(server.RequestId))
+            {
+                _logger.LogWarning("Skipped malformed server registry record {@Server}.", server);
+                continue;
+            }
 
-            var json = JsonSerializer.Serialize(_items[index], _jsonSerializerOptions);
+            if (!uniqueIds.Add(server.UniqueId))
+            {
+                _logger.LogWarning("Skipped duplicate server registry record with UniqueId {UniqueId}.", server.UniqueId);
+                continue;
+            }
 
-            File.WriteAllText(path, json);
+            normalized.Add(server);
+        }
 
-            return path;
+        return normalized;
+    }
+
+    private static string GetNewName(IReadOnlyList<ServerContainer> servers)
+    {
+        foreach (var name in PossibleServerNames)
+        {
+            if (servers.All(server => server.ServerName != name))
+            {
+                return name;
+            }
+        }
+
+        return $"Server({Guid.NewGuid():D})";
+    }
+
+    private void RemoveStaleRuntimeStatesNoLock()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var maxAge = TimeSpan.FromSeconds(_registryOptions.StaleServerStateSeconds);
+
+        foreach (var key in _runtimeStates
+                     .Where(item => now - item.Value.UpdatedAtUtc > maxAge)
+                     .Select(item => item.Key)
+                     .ToList())
+        {
+            _runtimeStates.Remove(key);
         }
     }
 }

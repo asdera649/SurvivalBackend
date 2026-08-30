@@ -1,59 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using NodaTime;
 using SurvivalBackend.Jobs;
+using SurvivalBackend.Security;
 
-namespace SurvivalBackend.Controllers
+namespace SurvivalBackend.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+[EnableRateLimiting(RateLimitPolicies.Public)]
+public sealed class ServersWipeController(ServersWipeScheduler serversWipeScheduler) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class ServersWipeController(ServersWipeScheduler serversWipeScheduler) : ControllerBase
+    private readonly ServersWipeScheduler _serversWipeScheduler = serversWipeScheduler;
+
+    public sealed class RemainingTimeToWipe
     {
-        #region Structs
+        public int Days { get; set; }
+        public int Hours { get; set; }
+        public int Minutes { get; set; }
+    }
 
-        public class RemainingTimeToWipe
+    [HttpGet("remainingTimeToWipe")]
+    public IActionResult GetRemainingTimeToWipe()
+    {
+        var nextExecution = _serversWipeScheduler.GetNextExecutionDate();
+        var duration = nextExecution.ToInstant() - SystemClock.Instance.GetCurrentInstant();
+        var totalMinutes = Math.Max(0, (long)Math.Floor(duration.TotalMinutes));
+
+        return Ok(new RemainingTimeToWipe
         {
-            public int Days { get; set; }
-            public int Hours { get; set; }
-            public int Minutes { get; set; }
-        }
-
-        #endregion
-
-        private readonly ServersWipeScheduler _serversWipeScheduler = serversWipeScheduler;
-
-        [HttpGet("remainingTimeToWipe")]
-        public IActionResult GetRemainingTimeToWipe()
-        {
-            var remainingTime = new RemainingTimeToWipe();
-
-            var now = SystemClock.Instance.GetCurrentInstant().InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault());
-
-            var nextExecution = GetNextExecutionDate();
-
-            var timeUntil = nextExecution - now;
-
-            remainingTime.Days = timeUntil.Days;
-            remainingTime.Hours = timeUntil.Hours;
-            remainingTime.Minutes = timeUntil.Minutes;
-
-            return Ok(remainingTime);
-        }
-
-        public ZonedDateTime GetNextExecutionDate()
-        {
-            var now = SystemClock.Instance.GetCurrentInstant().InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault());
-
-            int daysUntilTarget = ((int)_serversWipeScheduler.WipeDayOfWeek - (int)now.DayOfWeek + 7) % 7;
-
-            if (daysUntilTarget == 0 && now.TimeOfDay > _serversWipeScheduler.WipeTime)
-            {
-                daysUntilTarget = 7;
-            }
-
-            LocalDate nextExecutionDate = now.Date.PlusDays(daysUntilTarget);
-            ZonedDateTime nextExecutionDateTime = nextExecutionDate.At(_serversWipeScheduler.WipeTime).InZoneStrictly(now.Zone);
-
-            return nextExecutionDateTime;
-        }
+            Days = (int)(totalMinutes / (24 * 60)),
+            Hours = (int)(totalMinutes % (24 * 60) / 60),
+            Minutes = (int)(totalMinutes % 60)
+        });
     }
 }
