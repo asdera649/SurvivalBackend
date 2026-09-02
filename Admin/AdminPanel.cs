@@ -222,7 +222,10 @@ public static class AdminPanel
     });
     document.querySelector("#refresh").addEventListener("click", refresh);
     document.querySelector("#releaseMissing").addEventListener("click", () => postAction("/admin/api/servers/release-missing"));
-    document.querySelector("#runWipe").addEventListener("click", () => postAction("/admin/api/wipe/run"));
+    document.querySelector("#runWipe").addEventListener("click", () => {
+      if (!confirm("Точно запустить вайп? Все сохранения будут удалены безвозвратно.")) return;
+      postAction("/admin/api/wipe/run");
+    });
 
     async function request(path, options = {}) {
       const headers = new Headers(options.headers || {});

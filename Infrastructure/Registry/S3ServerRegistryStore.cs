@@ -1,4 +1,4 @@
-using System.Text;
+using System.Net;
 using System.Text.Json;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -21,47 +21,34 @@ public sealed class S3ServerRegistryStore(
     private readonly S3Options _options = options.Value;
     private readonly ILogger<S3ServerRegistryStore> _logger = logger;
 
+    private string RegistryObjectKey => S3SaveStorage.CombineS3Key(_options.ServersListSavesPath, "registry.json");
+
     public async Task<IReadOnlyList<ServerContainer>> LoadAsync(CancellationToken cancellationToken)
     {
         return await ExecuteWithRetryAsync(async () =>
         {
             using var client = CreateClient();
-            var servers = new List<ServerContainer>();
-            var listRequest = new ListObjectsV2Request
-            {
-                BucketName = _options.BucketName,
-                Prefix = _options.ServersListSavesPath
-            };
 
-            ListObjectsV2Response listResponse;
-            do
+            try
             {
-                listResponse = await client.ListObjectsV2Async(listRequest, cancellationToken);
-
-                foreach (var s3Object in listResponse.S3Objects.Where(item => !item.Key.EndsWith('/')))
+                using var response = await client.GetObjectAsync(new GetObjectRequest
                 {
-                    using var response = await client.GetObjectAsync(new GetObjectRequest
-                    {
-                        BucketName = _options.BucketName,
-                        Key = s3Object.Key
-                    }, cancellationToken);
+                    BucketName = _options.BucketName,
+                    Key = RegistryObjectKey
+                }, cancellationToken);
 
-                    var server = await JsonSerializer.DeserializeAsync<ServerContainer>(
-                        response.ResponseStream,
-                        SerializerOptions,
-                        cancellationToken);
+                var servers = await JsonSerializer.DeserializeAsync<List<ServerContainer>>(
+                    response.ResponseStream,
+                    SerializerOptions,
+                    cancellationToken);
 
-                    if (server is not null)
-                    {
-                        servers.Add(server);
-                    }
-                }
-
-                listRequest.ContinuationToken = listResponse.NextContinuationToken;
+                return (IReadOnlyList<ServerContainer>)(servers ?? []);
             }
-            while (listResponse.IsTruncated);
-
-            return (IReadOnlyList<ServerContainer>)servers;
+            catch (AmazonS3Exception exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+            {
+                // Объекта ещё нет — например самый первый запуск. Это не ошибка, реестр просто пуст.
+                return (IReadOnlyList<ServerContainer>)[];
+            }
         }, cancellationToken);
     }
 
@@ -70,23 +57,17 @@ public sealed class S3ServerRegistryStore(
         await ExecuteWithRetryAsync(async () =>
         {
             using var client = CreateClient();
-            await ClearPrefixAsync(client, cancellationToken);
+            var json = JsonSerializer.Serialize(servers, SerializerOptions);
 
-            for (var index = 0; index < servers.Count; index++)
+            await client.PutObjectAsync(new PutObjectRequest
             {
-                var key = S3SaveStorage.CombineS3Key(_options.ServersListSavesPath, $"{index + 1}server.json");
-                var json = JsonSerializer.Serialize(servers[index], SerializerOptions);
+                BucketName = _options.BucketName,
+                Key = RegistryObjectKey,
+                ContentBody = json,
+                ContentType = "application/json"
+            }, cancellationToken);
 
-                await client.PutObjectAsync(new PutObjectRequest
-                {
-                    BucketName = _options.BucketName,
-                    Key = key,
-                    ContentBody = json,
-                    ContentType = "application/json"
-                }, cancellationToken);
-            }
-
-            _logger.LogDebug("Saved {Count} server registry records to S3 prefix {Prefix}.", servers.Count, _options.ServersListSavesPath);
+            _logger.LogDebug("Saved {Count} server registry records to S3 key {Key}.", servers.Count, RegistryObjectKey);
         }, cancellationToken);
     }
 
@@ -95,39 +76,16 @@ public sealed class S3ServerRegistryStore(
         await ExecuteWithRetryAsync(async () =>
         {
             using var client = CreateClient();
-            await ClearPrefixAsync(client, cancellationToken);
-        }, cancellationToken);
-    }
 
-    private async Task ClearPrefixAsync(AmazonS3Client client, CancellationToken cancellationToken)
-    {
-        var listRequest = new ListObjectsV2Request
-        {
-            BucketName = _options.BucketName,
-            Prefix = _options.ServersListSavesPath
-        };
-
-        ListObjectsV2Response listResponse;
-        do
-        {
-            listResponse = await client.ListObjectsV2Async(listRequest, cancellationToken);
-            var objectsToDelete = listResponse.S3Objects
-                .Where(item => !item.Key.EndsWith('/'))
-                .Select(item => new KeyVersion { Key = item.Key })
-                .ToList();
-
-            if (objectsToDelete.Count > 0)
+            try
             {
-                await client.DeleteObjectsAsync(new DeleteObjectsRequest
-                {
-                    BucketName = _options.BucketName,
-                    Objects = objectsToDelete
-                }, cancellationToken);
+                await client.DeleteObjectAsync(_options.BucketName, RegistryObjectKey, cancellationToken);
             }
-
-            listRequest.ContinuationToken = listResponse.NextContinuationToken;
-        }
-        while (listResponse.IsTruncated);
+            catch (AmazonS3Exception exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+            {
+                // Уже отсутствует — чистить нечего.
+            }
+        }, cancellationToken);
     }
 
     private AmazonS3Client CreateClient()

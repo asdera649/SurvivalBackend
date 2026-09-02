@@ -72,12 +72,16 @@ public sealed class ServersListService(
             EnsureLoaded();
 
             var candidate = GetServersSnapshotNoThrow().ToList();
-            ReleaseMissingDeployments(candidate, activeRequestIds);
+            var releasedCount = ReleaseMissingDeployments(candidate, activeRequestIds);
 
             var existingIndex = candidate.FindIndex(server => server.RequestId == requestId);
             if (existingIndex >= 0)
             {
-                await PersistAndCommitAsync(candidate, cancellationToken);
+                if (releasedCount > 0)
+                {
+                    await PersistAndCommitAsync(candidate, cancellationToken);
+                }
+
                 return candidate[existingIndex];
             }
 

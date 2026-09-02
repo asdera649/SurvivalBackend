@@ -47,6 +47,7 @@ public static class OptionsRegistration
             .Validate(options => !string.IsNullOrWhiteSpace(options.AdminApiKeyHeaderName), "Security:AdminApiKeyHeaderName is required.")
             .Validate(options => !options.RequireApiKeys || !string.IsNullOrWhiteSpace(options.ServerApiKey), "Security:ServerApiKey is required when Security:RequireApiKeys is true.")
             .Validate(options => !options.RequireApiKeys || !string.IsNullOrWhiteSpace(options.AdminApiKey), "Security:AdminApiKey is required when Security:RequireApiKeys is true.")
+            .Validate(options => environment.IsDevelopment() || options.RequireApiKeys, "Security:RequireApiKeys must be true outside Development.")
             .ValidateOnStart();
 
         services.AddOptions<GameClientOptions>()
@@ -76,6 +77,13 @@ public static class OptionsRegistration
             .Bind(configuration.GetSection(ServerRegistryOptions.SectionName))
             .Validate(options => IsStorageModeValid(options.StorageMode), "ServerRegistry:StorageMode must be S3 or LocalFile.")
             .Validate(options => options.StaleServerStateSeconds is >= 10 and <= 3600, "ServerRegistry:StaleServerStateSeconds must be between 10 and 3600.")
+            .ValidateOnStart();
+
+        services.AddOptions<ProxyOptions>()
+            .Bind(configuration.GetSection(ProxyOptions.SectionName))
+            .Validate(
+                options => options.TrustedNetworks.All(network => ProxyOptions.TryParseNetwork(network, out _, out _)),
+                "Proxy:TrustedNetworks entries must be valid IP addresses or CIDR ranges, e.g. \"10.0.0.5\" or \"10.0.0.0/24\".")
             .ValidateOnStart();
 
         return services;

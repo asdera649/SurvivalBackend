@@ -44,8 +44,6 @@ public sealed class ServersManagementController(
                 .Select(deployment => deployment.RequestId)
                 .ToHashSet(StringComparer.Ordinal);
 
-            await _serversListService.ReleaseMissingDeploymentsAsync(activeRequestIds, cancellationToken);
-
             if (!activeRequestIds.Contains(requestId))
             {
                 return BadRequest("There is no such ready deployment.");
