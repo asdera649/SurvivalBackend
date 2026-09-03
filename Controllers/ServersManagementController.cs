@@ -58,6 +58,27 @@ public sealed class ServersManagementController(
         }
     }
 
+    [HttpPost("renewSaveAccess")]
+    [RequireApiKey(ApiKeyRole.Server)]
+    [EnableRateLimiting(RateLimitPolicies.Management)]
+    public IActionResult RenewSaveAccess([FromQuery] string requestId)
+    {
+        if (!IsValidRequestId(requestId))
+        {
+            return BadRequest("Invalid requestId.");
+        }
+
+        var server = _serversListService.GetServersSnapshot()
+            .FirstOrDefault(item => item.RequestId == requestId);
+
+        if (server is null)
+        {
+            return NotFound("Unable to determine the server.");
+        }
+
+        return Ok(_saveStorage.CreateServerSaveAccess(server.ServerName));
+    }
+
     [HttpPost("setServerReady")]
     [RequireApiKey(ApiKeyRole.Server)]
     [EnableRateLimiting(RateLimitPolicies.Management)]

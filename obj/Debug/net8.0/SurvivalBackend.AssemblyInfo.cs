@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SurvivalBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+19b150efe04429e62f317c12cc0198e3ef868809")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+69e980fa50e8dae380ea076db5fe396775ff4018")]
 [assembly: System.Reflection.AssemblyProductAttribute("SurvivalBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SurvivalBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

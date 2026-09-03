@@ -107,16 +107,16 @@ builder.Services.AddSingleton<ServersWipeScheduler>();
 
 var app = builder.Build();
 
+if (trustForwardedHeaders)
+{
+    app.UseForwardedHeaders();
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler();
     app.UseHsts();
     app.UseHttpsRedirection();
-}
-
-if (trustForwardedHeaders)
-{
-    app.UseForwardedHeaders();
 }
 
 app.UseRateLimiter();

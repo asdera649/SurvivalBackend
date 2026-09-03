@@ -4,7 +4,7 @@ ASP.NET Core backend for the mobile survival game server registry, connection lo
 
 ## Configuration
 
-Production secrets must be provided through environment variables or a secret store. Do not commit real keys.
+Production secrets must be provided through environment variables or a secret store.
 
 Required production variables:
 
@@ -28,7 +28,7 @@ $env:S3__CredentialDeliveryMode="PresignedUrls"
 $env:ServerRegistry__StorageMode="S3"
 ```
 
-`S3__CredentialDeliveryMode=PresignedUrls` is the safe default. It returns short-lived GET/PUT URLs for a single server save. Use `RawCredentials` only as a temporary compatibility mode for old game server builds.
+`S3__CredentialDeliveryMode=PresignedUrls` is the safe default. It returns short-lived GET/PUT URLs for a single server save (TTL controlled by `S3__PresignedUrlExpirationMinutes`, 15 minutes by default). Because a game server instance can stay up for days between wipes, it must not keep using the URLs issued at `registerServer` indefinitely - call `POST /ServersManagement/renewSaveAccess?requestId=...` periodically, well before the current URL's TTL elapses, to get a fresh URL pair for the same save object. Use `RawCredentials` only as a temporary compatibility mode for old game server builds that don't yet call `renewSaveAccess`.
 
 ## Protected Requests
 
@@ -61,6 +61,7 @@ Public:
 Game server:
 
 - `GET /ServersManagement/registerServer?requestId=...`
+- `POST /ServersManagement/renewSaveAccess?requestId=...`
 - `POST /ServersManagement/setServerReady?requestId=...`
 - `POST /ServersManagement/updateServerState?requestId=...`
 
@@ -71,10 +72,3 @@ Admin:
 - `GET /admin/api/config`
 - `POST /admin/api/wipe/run`
 - `POST /admin/api/servers/release-missing`
-
-## Production Notes
-
-- Rotate the old Edgegap and S3 keys if they were ever committed.
-- Keep S3 for world save files unless there is a strong reason to proxy saves through the backend.
-- Move server registry metadata to PostgreSQL before horizontal scaling to multiple backend instances.
-- Keep `bin/`, `obj/`, `.vs/`, local logs and runtime data out of git.
