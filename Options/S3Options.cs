@@ -4,6 +4,7 @@ public sealed class S3Options
 {
     public const string SectionName = "S3";
 
+    public string Region { get; set; } = "ru-1";
     public string EndPoint { get; set; } = string.Empty;
     public string BucketName { get; set; } = string.Empty;
     public string AccessKey { get; set; } = string.Empty;

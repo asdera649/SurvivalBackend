@@ -105,6 +105,7 @@ public sealed class S3SaveStorage(
         var config = new AmazonS3Config
         {
             ServiceURL = NormalizeEndpointForAwsSdk(_options.EndPoint),
+            AuthenticationRegion = _options.Region,
             ForcePathStyle = true
         };
 

@@ -93,6 +93,7 @@ public sealed class S3ServerRegistryStore(
         var config = new AmazonS3Config
         {
             ServiceURL = S3SaveStorage.NormalizeEndpointForAwsSdk(_options.EndPoint),
+            AuthenticationRegion = _options.Region,
             ForcePathStyle = true
         };
 
