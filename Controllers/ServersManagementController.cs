@@ -178,7 +178,8 @@ public sealed class ServersManagementController(
             var output = new List<ServerInfo>();
             foreach (var server in _serversListService.GetServersSnapshot().Where(server => server.Ready))
             {
-                if (!deploymentByRequestId.TryGetValue(server.RequestId, out var deployment))
+                if (!deploymentByRequestId.TryGetValue(server.RequestId, out var deployment)
+                    || deployment.GamePortExternal is null)
                 {
                     continue;
                 }
@@ -194,6 +195,7 @@ public sealed class ServersManagementController(
                 output.Add(new ServerInfo
                 {
                     Ip = deployment.PublicIp,
+                    Port = deployment.GamePortExternal.Value,
                     UniqueId = server.UniqueId,
                     Name = server.ServerName,
                     MaxPlayersCount = maxPlayersCount,
