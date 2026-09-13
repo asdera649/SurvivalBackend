@@ -41,7 +41,12 @@ public sealed class EdgegapClient(
                 continue;
             }
 
-            deployments.Add(new EdgegapDeployment(requestId, publicIp, ready, GetGamePortExternal(item)));
+            deployments.Add(new EdgegapDeployment(
+                requestId,
+                publicIp,
+                ready,
+                GetPortExternal(item, false),
+                GetPortExternal(item, true)));
         }
 
         return deployments;
@@ -61,7 +66,7 @@ public sealed class EdgegapClient(
             GetString(root, "current_status"),
             GetBool(root, "running"),
             GetString(root, "public_ip"),
-            GetGamePortExternal(root));
+            GetPortExternal(root, false));
     }
 
     public async Task<IReadOnlyList<EdgegapFleet>> GetFleetsAsync(CancellationToken cancellationToken)
@@ -186,10 +191,10 @@ public sealed class EdgegapClient(
             or HttpStatusCode.GatewayTimeout;
     }
 
-    private static int? GetGamePortExternal(JsonElement element)
+    private static int? GetPortExternal(JsonElement element, bool pingPort)
     {
         if (element.TryGetProperty("ports", out var ports)
-            && ports.TryGetProperty("gameport", out var gamePort)
+            && ports.TryGetProperty(pingPort ? "pingport" : "gameport", out var gamePort)
             && gamePort.TryGetProperty("external", out var externalPort)
             && externalPort.TryGetInt32(out var parsedPort))
         {

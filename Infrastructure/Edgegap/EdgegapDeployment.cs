@@ -4,4 +4,5 @@ public sealed record EdgegapDeployment(
     string RequestId,
     string PublicIp,
     bool Ready,
-    int? GamePortExternal);
+    int? GamePortExternal,
+    int? PingPortExternal);
